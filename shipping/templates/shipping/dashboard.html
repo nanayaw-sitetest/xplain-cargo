@@ -1,0 +1,406 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X-plain Terminal | Dashboard</title>
+    <link rel="icon" type="image/jpeg" href="{% static 'images/main_logo.JPG' %}">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .glass {
+            background: rgba(15, 23, 42, 0.9);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-gradient {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+        }
+        .modal-bg {
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(12px);
+        }
+        /* Custom checkbox style to match the aesthetic */
+        .custom-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 0.5rem;
+            background: rgba(255,255,255,0.05);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+        .custom-checkbox:checked {
+            background: #10b981;
+            border-color: #10b981;
+        }
+        .custom-checkbox:checked::after {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            color: #020617;
+            font-size: 0.75rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        /* Mobile Optimization Styles */
+        #mobileSidebar.active {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200 font-sans">
+
+    <div class="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-white/5 sticky top-0 z-[60]">
+        <h1 class="text-xl font-bold tracking-tighter text-white">X-PLAIN <span class="text-emerald-500">TERMINAL</span></h1>
+        <button onclick="toggleMobileNav()" class="text-emerald-500 text-2xl">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+
+    <div id="sidebarOverlay" onclick="toggleMobileNav()" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[70] hidden md:hidden"></div>
+
+    <aside id="mobileSidebar" class="fixed inset-y-0 left-0 w-72 glass z-[80] flex flex-col transition-transform duration-300 -translate-x-full md:hidden">
+        <div class="p-6 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold tracking-tighter text-white">X-PLAIN</h1>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Global Logistics Node</p>
+            </div>
+            <button onclick="toggleMobileNav()" class="text-slate-400">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+        
+        <nav class="flex-1 px-4 py-4 space-y-2">
+            <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-xl font-bold text-sm">
+                <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <button onclick="toggleModal(); toggleMobileNav();" class="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-sm transition text-left">
+                <i class="fas fa-plus-circle"></i> New Shipment
+            </button>
+            <a href="{% url 'my_shipments' %}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-sm transition">
+                <i class="fas fa-boxes-stacked"></i> My Shipments
+            </a>
+            <a href="{% url 'track' %}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-sm transition">
+                <i class="fas fa-search-location"></i> Track Trace
+            </a>
+        </nav>
+
+        <div class="p-4 mt-auto">
+            <div class="bg-slate-900 rounded-2xl p-4 border border-white/5">
+                <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">Logged in as</p>
+                <p class="text-sm font-bold text-white">{{ user.username }}</p>
+                <a href="{% url 'logout' %}" class="text-[10px] text-emerald-500 font-bold uppercase mt-2 block hover:underline">Terminate Session</a>
+            </div>
+        </div>
+    </aside>
+
+    <div class="flex min-h-screen">
+        <aside class="w-64 glass hidden md:flex flex-col fixed h-full z-50">
+            <div class="p-6">
+                <h1 class="text-2xl font-bold tracking-tighter text-white">X-PLAIN <span class="text-emerald-500">TERMINAL</span></h1>
+                <p class="text-[10px] text-slate-500 font-bold uppercase tracking-widest mt-1">Global Logistics Node</p>
+            </div>
+            
+            <nav class="flex-1 px-4 py-4 space-y-2">
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 px-4 py-3 bg-emerald-500/10 text-emerald-500 rounded-xl font-bold text-sm">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+                <button onclick="toggleModal()" class="w-full flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-sm transition text-left">
+                    <i class="fas fa-plus-circle"></i> New Shipment
+                </button>
+                <a href="{% url 'my_shipments' %}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-sm transition">
+                    <i class="fas fa-boxes-stacked"></i> My Shipments
+                </a>
+                <a href="{% url 'track' %}" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-white/5 hover:text-white rounded-xl font-bold text-sm transition">
+                    <i class="fas fa-search-location"></i> Track Trace
+                </a>
+            </nav>
+
+            <div class="p-4 mt-auto">
+                <div class="bg-slate-900 rounded-2xl p-4 border border-white/5">
+                    <p class="text-[10px] text-slate-500 font-bold uppercase mb-2">Logged in as</p>
+                    <p class="text-sm font-bold text-white">{{ user.username }}</p>
+                    <a href="{% url 'logout' %}" class="text-[10px] text-emerald-500 font-bold uppercase mt-2 block hover:underline">Terminate Session</a>
+                </div>
+            </div>
+        </aside>
+
+        <main class="flex-1 md:ml-64 p-6 md:p-10 w-full overflow-x-hidden">
+            <header class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                <div>
+                    <h2 class="text-3xl font-black text-white tracking-tight">Operations <span class="text-emerald-500">Overview</span></h2>
+                    <p class="text-slate-500 font-medium">Monitoring {{ total_shipments }} active logistics manifests.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button id="bulkDeleteBtn" onclick="submitBulkDelete()" class="hidden px-6 py-3 bg-rose-600 hover:bg-rose-500 text-white rounded-xl font-black text-xs uppercase tracking-widest transition shadow-lg shadow-rose-600/20 items-center gap-2">
+                        <i class="fas fa-trash-alt"></i> Delete Selected
+                    </button>
+                    <button onclick="toggleModal()" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-black text-xs uppercase tracking-widest transition shadow-lg shadow-emerald-600/20">
+                        Initiate New Cargo
+                    </button>
+                </div>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                <div class="card-gradient p-6 rounded-[2rem] border border-white/5 shadow-xl">
+                    <div class="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-4">
+                        <i class="fas fa-boxes-stacked"></i>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Total Manifests</p>
+                    <h3 class="text-2xl font-black text-white">{{ total_shipments }}</h3>
+                </div>
+                
+                <div class="card-gradient p-6 rounded-[2rem] border border-white/5 shadow-xl">
+                    <div class="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500 mb-4">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Active Manifests</p>
+                    <h3 class="text-2xl font-black text-white">{{ active_shipments }}</h3>
+                </div>
+
+                <div class="card-gradient p-6 rounded-[2rem] border border-white/5 shadow-xl">
+                    <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 mb-4">
+                        <i class="fas fa-euro-sign"></i>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Total Spent (EUR)</p>
+                    <h3 class="text-2xl font-black text-white">€{{ total_eur|floatformat:2 }}</h3>
+                </div>
+
+                <div class="card-gradient p-6 rounded-[2rem] border border-white/5 shadow-xl">
+                    <div class="w-10 h-10 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-500 mb-4">
+                        <i class="fas fa-cedi-sign"></i>
+                    </div>
+                    <p class="text-[10px] text-slate-500 font-black uppercase tracking-widest mb-1">Total Spent (GHS)</p>
+                    <h3 class="text-2xl font-black text-white">₵{{ total_ghs|floatformat:2 }}</h3>
+                </div>
+            </div>
+
+            <div class="mb-12 bg-slate-900/50 border border-white/5 rounded-[2rem] p-6 backdrop-blur-xl">
+                <div class="relative group">
+                    <i class="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 text-sm group-focus-within:text-emerald-500 transition-colors"></i>
+                    <input 
+                        type="text" 
+                        id="userSearchInput" 
+                        placeholder="FILTER BY CONSIGNMENT ID, RECEIVER, OR ROUTE..." 
+                        class="w-full bg-slate-950/50 border border-white/5 rounded-2xl py-4 pl-16 pr-6 text-white text-[10px] font-black uppercase tracking-[0.2em] outline-none focus:border-emerald-500/30 transition-all placeholder:text-slate-700"
+                    >
+                </div>
+            </div>
+
+            <div class="bg-slate-900/50 rounded-[2.5rem] border border-white/5 overflow-hidden backdrop-blur-xl">
+                <div class="p-8 border-b border-white/5 flex items-center justify-between">
+                    <h3 class="font-black uppercase tracking-widest text-xs text-slate-400">Live Logistics Manifest</h3>
+                    <div class="flex gap-2">
+                        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <span class="text-[10px] font-bold text-emerald-500 uppercase">Live Database</span>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <form id="bulkDeleteForm" method="POST" action="{% url 'bulk_delete_shipments' %}">
+                        {% csrf_token %}
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead>
+                                <tr class="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-white/5">
+                                    <th class="px-6 py-4 w-10">
+                                        <input type="checkbox" id="selectAll" class="custom-checkbox">
+                                    </th>
+                                    <th class="px-6 py-4">Consignment ID</th>
+                                    <th class="px-6 py-4">Receiver</th>
+                                    <th class="px-6 py-4">Route Info</th>
+                                    <th class="px-6 py-4">Financials</th>
+                                    <th class="px-6 py-4">Logistics Status</th>
+                                    <th class="px-6 py-4 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="shipmentTableBody" class="divide-y divide-white/5">
+                                {% for shipment in shipments %}
+                                <tr class="shipment-row hover:bg-white/[0.02] transition-colors group">
+                                    <td class="px-6 py-4">
+                                        <input type="checkbox" name="shipment_ids" value="{{ shipment.id }}" class="shipment-checkbox custom-checkbox">
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-black text-white group-hover:text-emerald-400 transition">#{{ shipment.tracking_number }}</span>
+                                            <span class="text-[10px] text-slate-500 font-bold uppercase">{{ shipment.created_at|date:"d M Y" }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-bold text-slate-200">{{ shipment.receiver_name }}</span>
+                                            <span class="text-[10px] text-slate-500 font-medium">{{ shipment.receiver_phone }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-black text-emerald-500">
+                                                {% if shipment.transport_mode == 'GH_DE' %}Ghana <i class="fas fa-arrow-right mx-1"></i> Germany
+                                                {% elif shipment.transport_mode == 'DE_GH' %}Germany <i class="fas fa-arrow-right mx-1"></i> Ghana
+                                                {% elif shipment.transport_mode == 'GH_GH' %}Local (GH)
+                                                {% elif shipment.transport_mode == 'DE_DE' %}Local (DE)
+                                                {% else %}{{ shipment.transport_mode }}{% endif %}
+                                            </span>
+                                            <span class="text-[10px] text-slate-500 font-medium">{{ shipment.destination_city|default:"To Warehouse" }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-black text-white">
+                                                {% if shipment.currency_code == 'GHS' %}₵{% else %}€{% endif %}{{ shipment.total_fare|floatformat:2 }}
+                                            </span>
+                                            <span class="text-[10px] text-slate-500 font-bold uppercase">{{ shipment.weight_kg }} KG</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="inline-flex items-center px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-2"></span>
+                                            <span class="text-[10px] font-black uppercase tracking-tighter">{{ shipment.get_status_display }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-3">
+                                            <a href="{% url 'track' %}?tracking_id={{ shipment.tracking_number }}" class="text-slate-400 hover:text-white transition" title="Track">
+                                                <i class="fas fa-external-link-alt"></i>
+                                            </a>
+                                            <button type="button" onclick="confirmDelete('{{ shipment.id }}', '{{ shipment.tracking_number }}')" class="text-slate-500 hover:text-rose-500 transition" title="Delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="px-6 py-12 text-center text-slate-500">
+                                        <i class="fas fa-box-open text-4xl mb-3 block"></i>
+                                        No shipments found. Start shipping by selecting a route.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </form>
+                </div>
+                {% include 'shipping/includes/paginator.html' %}
+            </div>
+        </main>
+    </div>
+
+    <div id="routeModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 modal-bg">
+    <div class="bg-slate-900 border border-white/10 w-full max-w-xl rounded-[2rem] md:rounded-[2.5rem] overflow-y-auto max-h-[90vh] shadow-2xl">
+        <div class="p-6 md:p-8 border-b border-white/5 flex justify-between items-center sticky top-0 bg-slate-900 z-10">
+            <div>
+                <h3 class="text-lg md:text-xl font-black text-white tracking-tight">Select Logistics <span class="text-emerald-500">Path</span></h3>
+                <p class="text-[9px] md:text-[10px] text-slate-500 font-bold uppercase tracking-widest">Specify origin and destination node</p>
+            </div>
+            <button onclick="toggleModal()" class="w-8 h-8 md:w-10 md:h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="p-6 md:p-8 grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+            <a href="{% url 'request_shipment' %}?route=GH_DE" class="group p-5 md:p-6 rounded-2xl md:rounded-3xl bg-white/5 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition">
+                <div class="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500 mb-3 md:mb-4 group-hover:scale-110 transition"><i class="fas fa-plane-departure"></i></div>
+                <span class="text-xs font-black text-white block">Ghana to Germany</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase">International Air/Sea</span>
+            </a>
+
+            <a href="{% url 'request_shipment' %}?route=DE_GH" class="group p-5 md:p-6 rounded-2xl md:rounded-3xl bg-white/5 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition">
+                <div class="w-10 h-10 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-500 mb-3 md:mb-4 group-hover:scale-110 transition"><i class="fas fa-plane-arrival"></i></div>
+                <span class="text-xs font-black text-white block">Germany to Ghana</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase">International Import</span>
+            </a>
+
+            <a href="{% url 'request_shipment' %}?route=GH_GH" class="group p-5 md:p-6 rounded-2xl md:rounded-3xl bg-white/5 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition">
+                <div class="w-10 h-10 bg-rose-500/10 rounded-xl flex items-center justify-center text-rose-500 mb-3 md:mb-4 group-hover:scale-110 transition"><i class="fas fa-truck-loading"></i></div>
+                <span class="text-xs font-black text-white block">Intra Ghana</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase">Local Logistics Node</span>
+            </a>
+
+            <a href="{% url 'request_shipment' %}?route=DE_DE" class="group p-5 md:p-6 rounded-2xl md:rounded-3xl bg-white/5 border border-white/5 hover:border-emerald-500/50 hover:bg-emerald-500/5 transition">
+                <div class="w-10 h-10 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-500 mb-3 md:mb-4 group-hover:scale-110 transition"><i class="fas fa-truck"></i></div>
+                <span class="text-xs font-black text-white block">Intra Germany</span>
+                <span class="text-[10px] text-slate-500 font-bold uppercase">Local EU Logistics</span>
+            </a>
+        </div>
+    </div>
+</div>
+
+    <script>
+        function toggleModal() {
+            const modal = document.getElementById('routeModal');
+            modal.classList.toggle('hidden');
+            modal.classList.toggle('flex');
+        }
+
+        function toggleMobileNav() {
+            const sidebar = document.getElementById('mobileSidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('-translate-x-full');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('hidden');
+        }
+
+        // --- LIVE SEARCH LOGIC ---
+        document.getElementById('userSearchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const tableRows = document.querySelectorAll('.shipment-row');
+
+            tableRows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    row.style.display = "";
+                } else {
+                    row.style.display = "none";
+                }
+            });
+        });
+
+        // --- SELECTION & DELETION LOGIC ---
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.shipment-checkbox');
+        const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+
+        // Toggle all checkboxes
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = this.checked);
+            toggleBulkButton();
+        });
+
+        // Show/Hide bulk button based on selection
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', toggleBulkButton);
+        });
+
+        function toggleBulkButton() {
+            const checkedCount = document.querySelectorAll('.shipment-checkbox:checked').length;
+            if (checkedCount > 0) {
+                bulkDeleteBtn.classList.remove('hidden');
+                bulkDeleteBtn.classList.add('flex');
+            } else {
+                bulkDeleteBtn.classList.add('hidden');
+                bulkDeleteBtn.classList.remove('flex');
+            }
+        }
+
+        function confirmDelete(id, tracking) {
+            if (confirm(`Are you sure you want to delete shipment #${tracking}? This action cannot be undone.`)) {
+                window.location.href = `/delete-shipment/${id}/`; 
+            }
+        }
+
+        function submitBulkDelete() {
+            const checkedCount = document.querySelectorAll('.shipment-checkbox:checked').length;
+            if (confirm(`Are you sure you want to delete ${checkedCount} selected shipments?`)) {
+                document.getElementById('bulkDeleteForm').submit();
+            }
+        }
+    </script>
+</body>
+</html>

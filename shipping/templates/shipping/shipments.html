@@ -1,0 +1,379 @@
+{% extends 'shipping/base.html' %}
+
+{% block title %}Shipment Ledger | X-plain Terminal{% endblock %}
+
+{% block content %}
+<form id="bulkDeleteForm" method="POST">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="bulk_delete_shipments">
+
+    <div class="min-h-screen bg-[#0f172a] pb-20"> 
+        <div class="max-w-7xl mx-auto px-6 py-12">
+            
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                <div>
+                    <div class="flex items-center gap-4 mb-2">
+                        <a href="{% url 'dashboard' %}" class="flex items-center gap-2 text-slate-400 hover:text-emerald-500 transition font-black text-xs uppercase tracking-widest group">
+                            <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i> 
+                            Back to Terminal
+                        </a>
+                    </div>
+                    <h1 class="text-5xl font-black text-white tracking-tighter">Shipment Ledger</h1>
+                    <p class="text-slate-500 font-bold uppercase tracking-widest text-xs mt-2">Active Manifests & Global Logistics</p>
+                </div>
+                <div class="flex gap-4">
+                    <button type="button" onclick="toggleSelectAll()" class="bg-white/5 hover:bg-white/10 text-slate-400 px-6 py-4 rounded-2xl font-black transition border border-white/10 flex items-center gap-3 w-fit cursor-pointer text-xs uppercase tracking-widest">
+                        <i class="fas fa-check-double"></i> Toggle All
+                    </button>
+                    <button type="button" onclick="toggleRouteModal(true)" class="bg-emerald-500 hover:bg-emerald-600 text-slate-900 px-8 py-4 rounded-2xl font-black transition shadow-xl shadow-emerald-500/20 flex items-center gap-3 w-fit cursor-pointer">
+                        <i class="fas fa-plus"></i> New Shipment
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+                <div class="bg-white/5 backdrop-blur-xl p-6 rounded-[2rem] border border-white/10 shadow-sm">
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Total Volume</p>
+                    <h2 class="text-3xl font-black text-white">{{ shipments.count }} <span class="text-sm text-slate-500">Packages</span></h2>
+                </div>
+                <div class="bg-emerald-500 p-6 rounded-[2rem] shadow-xl shadow-emerald-500/10">
+                    <p class="text-[10px] font-black text-emerald-900/50 uppercase tracking-widest">Active Transit</p>
+                    <h2 class="text-3xl font-black text-slate-900">Global <i class="fas fa-globe-africa ml-2"></i></h2>
+                </div>
+                <div class="bg-white/5 backdrop-blur-xl p-6 rounded-[2rem] border border-white/10 shadow-xl">
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Status</p>
+                    <h2 class="text-3xl font-black text-emerald-400">Operational</h2>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                {% for shipment in shipments %}
+                <div class="group bg-white/5 hover:bg-white/[0.08] border border-white/10 p-8 rounded-[2.5rem] transition-all duration-300 shadow-sm hover:shadow-2xl relative overflow-hidden">
+                    
+                    <div class="absolute top-8 left-4 z-10">
+                        <label class="relative flex items-center cursor-pointer">
+                            <input type="checkbox" name="shipment_ids" value="{{ shipment.id }}" class="shipment-checkbox hidden peer" onchange="updateBulkBar()">
+                            <div class="w-6 h-6 rounded-lg border-2 border-white/10 peer-checked:bg-emerald-500 peer-checked:border-emerald-500 transition-all flex items-center justify-center">
+                                <i class="fas fa-check text-[10px] text-slate-900 opacity-0 peer-checked:opacity-100"></i>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="absolute top-0 right-0 bg-emerald-500 text-slate-900 px-6 py-2 rounded-bl-3xl font-black text-[10px] uppercase tracking-tighter">
+                        {{ shipment.get_transport_mode_display }}
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8 items-center pl-8">
+                        <div>
+                            <span class="block text-[10px] font-black text-emerald-500 uppercase tracking-widest mb-1">Tracking ID</span>
+                            <h3 class="text-2xl font-black text-white group-hover:text-emerald-500 transition tracking-tighter">{{ shipment.tracking_number }}</h3>
+                            <p class="text-slate-500 text-xs font-bold mt-1">Initiated: {{ shipment.created_at|date:"M d, Y" }}</p>
+                        </div>
+
+                        <div class="lg:col-span-2">
+                            <div class="flex items-center gap-4 mb-4">
+                                <div class="text-right">
+                                    <p class="text-[10px] font-black text-slate-500 uppercase">Sender</p>
+                                    <p class="font-black text-slate-300">{{ shipment.sender_name }}</p>
+                                </div>
+                                <div class="flex-1 flex items-center gap-2">
+                                    <div class="h-[2px] flex-1 bg-white/10 relative">
+                                        <div class="absolute -top-1 left-0 w-2 h-2 rounded-full bg-white/20"></div>
+                                        <div class="absolute -top-1 right-0 w-2 h-2 rounded-full bg-emerald-500"></div>
+                                    </div>
+                                    <i class="fas fa-shipping-fast text-emerald-500"></i>
+                                    <div class="h-[2px] flex-1 bg-white/10"></div>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-black text-slate-500 uppercase">Receiver</p>
+                                    <p class="font-black text-slate-300">{{ shipment.receiver_name }}</p>
+                                </div>
+                            </div>
+
+                            <div class="w-full bg-white/5 h-3 rounded-full overflow-hidden">
+                                <div class="bg-emerald-500 h-full transition-all duration-1000" style="width: {{ shipment.get_progress_percentage }}%"></div>
+                            </div>
+                            <div class="flex justify-between mt-2">
+                                <span class="text-[10px] font-black text-emerald-500 uppercase">{{ shipment.get_status_display }}</span>
+                                <span class="text-[10px] font-black text-slate-500 uppercase">{{ shipment.get_progress_percentage }}% Complete</span>
+                            </div>
+                        </div>
+
+                        <div class="text-right flex flex-col items-end gap-3">
+                            <div>
+                                <p class="text-[10px] font-black text-slate-500 uppercase">Settlement</p>
+                                <p class="text-2xl font-black text-white">{{ shipment.get_currency_symbol }}{{ shipment.get_total_cost }}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="button"
+                                    onclick="openDetailModal('{{ shipment.tracking_number }}', '{{ shipment.sender_name }}', '{{ shipment.receiver_name }}', '{{ shipment.get_status_display }}', '{{ shipment.created_at|date:'M d, Y H:i' }}', '{{ shipment.description|escapejs }}', '{{ shipment.weight_kg }}', '{{ shipment.get_currency_symbol }}{{ shipment.get_total_cost }}', '{{ shipment.transport_mode }}', '{{ shipment.estimated_hours }}')"
+                                    class="bg-white/10 hover:bg-emerald-500 hover:text-slate-900 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition cursor-pointer">
+                                    View Details
+                                </button>
+                                <button type="button" onclick="confirmSingleDelete('{{ shipment.id }}', '{{ shipment.tracking_number }}')" class="w-12 h-12 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all flex items-center justify-center border border-red-500/20">
+                                    <i class="fas fa-trash-can text-sm"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center py-20 bg-white/5 rounded-[3rem] border-2 border-dashed border-white/10">
+                    <i class="fas fa-box-open text-6xl text-white/10 mb-6"></i>
+                    <h3 class="text-2xl font-black text-slate-500">No Manifests Found</h3>
+                    <p class="text-slate-600 font-bold">Your logistics terminal is currently empty.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div id="bulkActionBar" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[150] translate-y-32 transition-all duration-500 ease-out">
+        <div class="bg-slate-900/80 backdrop-blur-2xl border border-white/10 px-8 py-4 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center gap-8">
+            <div class="flex items-center gap-4 border-r border-white/10 pr-8">
+                <div class="w-10 h-10 bg-emerald-500 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                    <i class="fas fa-boxes-stacked text-slate-900 text-sm"></i>
+                </div>
+                <div>
+                    <p id="selectedCount" class="text-white font-black text-sm tracking-tighter">0 Units Selected</p>
+                    <p class="text-[8px] text-slate-500 font-black uppercase tracking-widest">Bulk Command Mode</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button type="button" onclick="cancelSelection()" class="text-slate-400 hover:text-white font-black text-[10px] uppercase tracking-widest transition">
+                    Cancel
+                </button>
+                <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-lg shadow-red-500/20 flex items-center gap-3">
+                    <i class="fas fa-trash-can"></i> Purge Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<form id="singleDeleteForm" method="POST" class="hidden">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="delete_shipment">
+    <input type="hidden" name="shipment_id" id="singleDeleteId">
+</form>
+
+<div id="detailModal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-[#0f172a]/95 backdrop-blur-md" onclick="closeDetailModal()"></div>
+    <div class="relative bg-slate-900 border border-white/10 w-full max-w-2xl rounded-[3rem] p-8 md:p-12 shadow-2xl overflow-hidden">
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <span class="text-emerald-500 font-black text-[10px] uppercase tracking-[0.3em]">Manifest Summary</span>
+                <h2 id="modalTrackingId" class="text-4xl font-black text-white tracking-tighter mt-1"></h2>
+            </div>
+            <button onclick="closeDetailModal()" class="text-slate-500 hover:text-white transition">
+                <i class="fas fa-times text-2xl"></i>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8 mb-8">
+            <div class="space-y-1">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Timestamp</p>
+                <p id="modalDate" class="text-white font-bold"></p>
+            </div>
+            <div class="space-y-1">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Current Status</p>
+                <p id="modalStatus" class="text-emerald-400 font-bold"></p>
+            </div>
+            <div class="space-y-1 border-t border-white/5 pt-4">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Consignor (Sender)</p>
+                <p id="modalSender" class="text-white font-bold"></p>
+            </div>
+            <div class="space-y-1 border-t border-white/5 pt-4">
+                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Consignee (Receiver)</p>
+                <p id="modalReceiver" class="text-white font-bold"></p>
+            </div>
+        </div>
+
+        <div class="bg-white/5 rounded-3xl p-6 border border-white/5 mb-8">
+            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3">Cargo Content</p>
+            <p id="modalDescription" class="text-slate-300 leading-relaxed font-medium mb-4 italic"></p>
+            
+            <div class="grid grid-cols-3 gap-6 pt-4 border-t border-white/5">
+                <div>
+                    <p id="modalUnitLabel" class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Weight</p>
+                    <p id="modalWeight" class="text-white font-black"></p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Est. Transit</p>
+                    <p id="modalDuration" class="text-white font-black">--</p>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Settlement</p>
+                    <p id="modalCost" class="text-emerald-400 font-black"></p>
+                </div>
+            </div>
+        </div>
+
+        <button onclick="closeDetailModal()" class="w-full bg-white text-slate-900 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-emerald-500 transition">
+            Close Terminal View
+        </button>
+    </div>
+</div>
+
+<div id="routeModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-[#0f172a]/90 backdrop-blur-sm" onclick="toggleRouteModal(false)"></div>
+    <div class="relative bg-slate-900 border border-white/10 w-full max-w-xl rounded-[3rem] p-10 shadow-2xl overflow-hidden">
+        <div class="absolute top-0 right-0 p-6">
+            <button onclick="toggleRouteModal(false)" class="text-slate-500 hover:text-white transition cursor-pointer">
+                <i class="fas fa-times text-xl"></i>
+            </button>
+        </div>
+
+        <div class="text-center mb-8">
+            <h2 class="text-4xl font-black text-white tracking-tighter mb-2">Select Route</h2>
+            <p class="text-slate-500 font-bold uppercase tracking-widest text-[10px]">Initialize New Cargo Manifest</p>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+            <a href="{% url 'request_shipment' %}?route=GH_GH" class="group flex items-center justify-between p-5 bg-white/5 hover:bg-emerald-500 border border-white/10 rounded-2xl transition-all duration-300 hover:scale-[1.01]">
+                <div class="flex items-center gap-5">
+                    <div class="w-12 h-12 bg-white/10 group-hover:bg-slate-900/20 rounded-xl flex items-center justify-center transition">
+                        <i class="fas fa-map-location-dot text-emerald-500 group-hover:text-slate-900 text-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-black text-white group-hover:text-slate-900 text-lg tracking-tighter leading-tight">Intra-Ghana</p>
+                        <p class="text-slate-500 group-hover:text-slate-900/60 text-[9px] font-black uppercase tracking-widest">Local Delivery (GHS)</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-slate-700 group-hover:text-slate-900"></i>
+            </a>
+
+            <a href="{% url 'request_shipment' %}?route=GH_DE" class="group flex items-center justify-between p-5 bg-white/5 hover:bg-emerald-500 border border-white/10 rounded-2xl transition-all duration-300 hover:scale-[1.01]">
+                <div class="flex items-center gap-5">
+                    <div class="w-12 h-12 bg-white/10 group-hover:bg-slate-900/20 rounded-xl flex items-center justify-center transition">
+                        <i class="fas fa-plane-departure text-emerald-500 group-hover:text-slate-900 text-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-black text-white group-hover:text-slate-900 text-lg tracking-tighter leading-tight">Ghana to Germany</p>
+                        <p class="text-slate-500 group-hover:text-slate-900/60 text-[9px] font-black uppercase tracking-widest">Export Freight (GHS/EUR)</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-slate-700 group-hover:text-slate-900"></i>
+            </a>
+
+            <a href="{% url 'request_shipment' %}?route=DE_GH" class="group flex items-center justify-between p-5 bg-white/5 hover:bg-emerald-500 border border-white/10 rounded-2xl transition-all duration-300 hover:scale-[1.01]">
+                <div class="flex items-center gap-5">
+                    <div class="w-12 h-12 bg-white/10 group-hover:bg-slate-900/20 rounded-xl flex items-center justify-center transition">
+                        <i class="fas fa-plane-arrival text-emerald-500 group-hover:text-slate-900 text-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-black text-white group-hover:text-slate-900 text-lg tracking-tighter leading-tight">Germany to Ghana</p>
+                        <p class="text-slate-500 group-hover:text-slate-900/60 text-[9px] font-black uppercase tracking-widest">Import Freight (EUR/GHS)</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-slate-700 group-hover:text-slate-900"></i>
+            </a>
+
+            <a href="{% url 'request_shipment' %}?route=DE_DE" class="group flex items-center justify-between p-5 bg-white/5 hover:bg-emerald-500 border border-white/10 rounded-2xl transition-all duration-300 hover:scale-[1.01]">
+                <div class="flex items-center gap-5">
+                    <div class="w-12 h-12 bg-white/10 group-hover:bg-slate-900/20 rounded-xl flex items-center justify-center transition">
+                        <i class="fas fa-truck-fast text-emerald-500 group-hover:text-slate-900 text-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <p class="font-black text-white group-hover:text-slate-900 text-lg tracking-tighter leading-tight">Intra-Germany</p>
+                        <p class="text-slate-500 group-hover:text-slate-900/60 text-[9px] font-black uppercase tracking-widest">EU Logistics (EUR)</p>
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-slate-700 group-hover:text-slate-900"></i>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script>
+// BULK ACTION LOGIC
+function updateBulkBar() {
+    const checkboxes = document.querySelectorAll('.shipment-checkbox:checked');
+    const bar = document.getElementById('bulkActionBar');
+    const countText = document.getElementById('selectedCount');
+    
+    if (checkboxes.length > 0) {
+        countText.innerText = `${checkboxes.length} Unit${checkboxes.length > 1 ? 's' : ''} Selected`;
+        bar.classList.remove('translate-y-32');
+    } else {
+        bar.classList.add('translate-y-32');
+    }
+}
+
+function toggleSelectAll() {
+    const checkboxes = document.querySelectorAll('.shipment-checkbox');
+    const allChecked = Array.from(checkboxes).every(c => c.checked);
+    checkboxes.forEach(c => c.checked = !allChecked);
+    updateBulkBar();
+}
+
+function cancelSelection() {
+    document.querySelectorAll('.shipment-checkbox').forEach(c => c.checked = false);
+    updateBulkBar();
+}
+
+function confirmSingleDelete(id, tracking) {
+    if (confirm(`Are you sure you want to purge shipment ${tracking} from your ledger?`)) {
+        document.getElementById('singleDeleteId').value = id;
+        document.getElementById('singleDeleteForm').submit();
+    }
+}
+
+// Route Selection Modal
+function toggleRouteModal(show) {
+    const modal = document.getElementById('routeModal');
+    if (show) {
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+        document.body.style.overflow = 'hidden';
+    } else {
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.body.style.overflow = 'auto';
+    }
+}
+
+// Shipment Detail Modal Logic
+function openDetailModal(id, sender, receiver, status, date, desc, weight, cost, route, hours) {
+    document.getElementById('modalTrackingId').innerText = id;
+    document.getElementById('modalSender').innerText = sender;
+    document.getElementById('modalReceiver').innerText = receiver;
+    document.getElementById('modalStatus').innerText = status;
+    document.getElementById('modalDate').innerText = date;
+    document.getElementById('modalDescription').innerText = desc || "No description provided.";
+    document.getElementById('modalCost').innerText = cost;
+    
+    document.getElementById('modalDuration').innerText = (hours && hours !== '0' && hours !== '0.00') ? hours + " hrs" : "TBD";
+
+    const unitLabel = document.getElementById('modalUnitLabel');
+    const unitValue = document.getElementById('modalWeight');
+
+    if (route === 'GH_GH' || route === 'DE_DE') {
+        unitLabel.innerText = "Local Unit";
+        unitValue.innerText = "Standard";
+    } else {
+        unitLabel.innerText = "Weight";
+        unitValue.innerText = (weight && weight !== '0.00') ? weight + " kg" : "N/A";
+    }
+
+    const modal = document.getElementById('detailModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeDetailModal() {
+    const modal = document.getElementById('detailModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    document.body.style.overflow = 'auto';
+}
+</script>
+
+<style>
+.custom-scrollbar::-webkit-scrollbar { width: 4px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+</style>
+{% endblock %}

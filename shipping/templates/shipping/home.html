@@ -1,0 +1,370 @@
+{% extends 'shipping/base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<style>
+    .hero-gradient {
+        background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        position: relative;
+    }
+    
+    .hero-gradient::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 150px;
+        background: linear-gradient(to top, #ffffff, transparent);
+        z-index: 1;
+    }
+
+    .glass {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+    }
+
+    body.modal-open { overflow: hidden; }
+
+    @keyframes zoom {
+        from { transform: scale(1); }
+        to { transform: scale(1.1); }
+    }
+    .animate-zoom {
+        animation: zoom 20s infinite alternate ease-in-out;
+    }
+
+    .border-glow {
+        position: relative;
+    }
+    .border-glow::after {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        background: linear-gradient(45deg, #0077b6, #48cae4, transparent);
+        z-index: -1;
+        border-radius: inherit;
+        opacity: 0.3;
+    }
+
+    /* Dropdown Tracking Results Styling */
+    #trackingResults {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        z-index: 50;
+        margin-top: 0.5rem;
+        border-radius: 1rem;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<header class="relative min-h-[90vh] flex items-center overflow-hidden hero-gradient px-6">
+    <div class="absolute inset-0 opacity-20">
+        <img src="https://images.unsplash.com/photo-1578575437130-527eed3abbec?auto=format&fit=crop&q=80" class="w-full h-full object-cover animate-zoom" alt="Logistics background">
+    </div>
+    
+    <div class="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center relative z-10 w-full">
+        <div class="text-left">
+            <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full mb-8 text-white">
+                <span class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></span>
+                <span class="text-[10px] font-bold uppercase tracking-widest">Global Logistics Active</span>
+            </div>
+            <h1 class="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-[0.9]">
+                Air. Sea. <br> Land. <span class="text-seablue">Simplified.</span>
+            </h1>
+            <p class="text-xl text-blue-100 max-w-xl font-medium leading-relaxed mb-10">
+                The premium logistics link between Germany and West Africa. We integrate multi-modal transport with real-time digital intelligence.
+            </p>
+            <div class="flex flex-wrap gap-4">
+                <button onclick="toggleCalculator()" class="bg-white text-deepnavy px-10 py-5 rounded-2xl font-black text-lg shadow-2xl hover:scale-105 transition-all">
+                    Estimate Shipping
+                </button>
+                <a href="#services" class="bg-transparent border-2 border-white/30 text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-white/10 transition-all">
+                    Our Services
+                </a>
+            </div>
+        </div>
+
+        <div class="glass p-10 rounded-[3rem] shadow-2xl border border-white/50 relative">
+            <h3 class="text-deepnavy font-black text-2xl mb-2">Track Shipment</h3>
+            <p class="text-slate-500 text-sm mb-8 font-medium">Enter your tracking ID or bill of lading.</p>
+            
+            <form id="trackingForm" action="/track/" method="GET" class="space-y-4">
+                {% csrf_token %}
+                <div class="relative group">
+                    <input type="text" id="trackingInput" name="tracking_id" autocomplete="off" placeholder="XP-000-000" 
+                           class="w-full pl-6 pr-6 py-5 rounded-2xl bg-slate-100 border-2 border-transparent focus:border-seablue focus:bg-white outline-none transition-all text-xl font-bold text-deepnavy">
+                    
+                    <div id="trackingResults" class="bg-white border border-slate-200 overflow-hidden">
+                        </div>
+                </div>
+                <button type="submit" class="w-full bg-seablue text-white py-5 rounded-2xl font-black text-lg shadow-xl hover:bg-deepnavy transition-all">
+                    Locate Cargo
+                </button>
+            </form>
+        </div>
+    </div>
+</header>
+
+<section class="py-20 bg-white border-b border-slate-50">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="text-center border-r border-slate-100 last:border-0">
+                <p class="text-4xl font-black text-deepnavy">12,400+</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Annual Tonnage</p>
+            </div>
+            <div class="text-center border-r border-slate-100 last:border-0">
+                <p class="text-4xl font-black text-deepnavy">100%</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Customs Success</p>
+            </div>
+            <div class="text-center border-r border-slate-100 last:border-0">
+                <p class="text-4xl font-black text-deepnavy">24/7</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Port Support</p>
+            </div>
+            <div class="text-center">
+                <p class="text-4xl font-black text-deepnavy">58</p>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Global Hubs</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="services" class="py-32 px-6 bg-white">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-20">
+            <h2 class="text-5xl font-black text-deepnavy tracking-tight mb-4">Connectivity Matrix</h2>
+            <p class="text-seablue font-bold uppercase tracking-[0.3em] text-xs">Reliable across all modalities</p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8">
+            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-deepnavy transition-all duration-500 overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-8 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-ship text-2xl text-seablue"></i>
+                    </div>
+                    <h4 class="text-2xl font-black text-deepnavy group-hover:text-white mb-4">Ocean Freight</h4>
+                    <p class="text-slate-500 group-hover:text-blue-100/60 leading-relaxed mb-8">Cost-effective FCL and LCL solutions for large-scale cargo movements between European ports and West Africa.</p>
+                    <ul class="space-y-3 text-sm font-bold text-deepnavy group-hover:text-white">
+                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-seablue"></i> Full Container (FCL)</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-seablue"></i> Groupage (LCL)</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-seablue transition-all duration-500 overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-8 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-plane text-2xl text-seablue"></i>
+                    </div>
+                    <h4 class="text-2xl font-black text-deepnavy group-hover:text-white mb-4">Air Logistics</h4>
+                    <p class="text-slate-500 group-hover:text-white/80 leading-relaxed mb-8">Priority handling for time-sensitive shipments, reaching major African hubs in under 72 hours.</p>
+                    <ul class="space-y-3 text-sm font-bold text-deepnavy group-hover:text-white">
+                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-white"></i> Express Delivery</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-white"></i> Temperature Control</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-deepnavy transition-all duration-500 overflow-hidden">
+                <div class="relative z-10">
+                    <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-8 group-hover:scale-110 transition-transform">
+                        <i class="fas fa-truck text-2xl text-seablue"></i>
+                    </div>
+                    <h4 class="text-2xl font-black text-deepnavy group-hover:text-white mb-4">Land Transit</h4>
+                    <p class="text-slate-500 group-hover:text-blue-100/60 leading-relaxed mb-8">Cross-border haulage and last-mile delivery services utilizing our fleet of secured, GPS-tracked vehicles.</p>
+                    <ul class="space-y-3 text-sm font-bold text-deepnavy group-hover:text-white">
+                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-seablue"></i> Inter-State Delivery</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-seablue"></i> Door-to-Door</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-32 bg-slate-50 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex flex-col md:flex-row justify-between items-end mb-20 gap-8">
+            <div class="max-w-2xl">
+                <h2 class="text-5xl font-black text-deepnavy tracking-tight mb-6">Seamless Execution. <br> Every Mile.</h2>
+                <p class="text-slate-500 font-medium text-lg">We've distilled the complexity of international shipping into four simple digital steps.</p>
+            </div>
+            <div class="bg-seablue/10 p-2 rounded-2xl hidden md:block">
+                <span class="text-seablue font-bold px-4 py-2 uppercase tracking-widest text-[10px]">Operation Protocol v4.0</span>
+            </div>
+        </div>
+
+        <div class="grid md:grid-cols-4 gap-4">
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+                <div class="text-4xl font-black text-slate-100 mb-6">01</div>
+                <h5 class="font-black text-deepnavy text-lg mb-2">Digital Booking</h5>
+                <p class="text-slate-400 text-sm">Generate quotes and book your space in seconds via our portal.</p>
+            </div>
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+                <div class="text-4xl font-black text-slate-100 mb-6">02</div>
+                <h5 class="font-black text-deepnavy text-lg mb-2">Smart Pickup</h5>
+                <p class="text-slate-400 text-sm">Our team collects cargo from your doorstep with instant digital receipt.</p>
+            </div>
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+                <div class="text-4xl font-black text-slate-100 mb-6">03</div>
+                <h5 class="font-black text-deepnavy text-lg mb-2">Ocean/Air Transit</h5>
+                <p class="text-slate-400 text-sm">Real-time GPS and milestone tracking until it hits the destination port.</p>
+            </div>
+            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl transition-all">
+                <div class="text-4xl font-black text-slate-100 mb-6">04</div>
+                <h5 class="font-black text-deepnavy text-lg mb-2">Last Mile</h5>
+                <p class="text-slate-400 text-sm">Direct delivery to your warehouse or client in West Africa.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="bg-deepnavy py-32 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="grid lg:grid-cols-3 gap-12">
+            <div class="lg:col-span-1">
+                <h2 class="text-4xl font-black text-white leading-tight mb-6">Why Industry Leaders Trust X-Plain.</h2>
+                <p class="text-blue-100/60 mb-8">We don't just move boxes; we move the data and trust that keeps your business running.</p>
+                <button class="bg-seablue text-white px-8 py-4 rounded-xl font-bold hover:bg-white hover:text-deepnavy transition-all">Download Company Profile</button>
+            </div>
+            <div class="lg:col-span-2 grid md:grid-cols-2 gap-6">
+                <div class="p-10 bg-white/5 border border-white/10 rounded-[2.5rem] hover:bg-white/10 transition-all">
+                    <div class="text-emerald-400 text-4xl mb-6">
+                        <i class="fas fa-shield-alt"></i> </div>
+                    <h4 class="text-white text-xl font-bold mb-4">Full Cargo Insurance</h4>
+                    <p class="text-blue-100/50 text-sm leading-relaxed">Every shipment is backed by comprehensive transit insurance, giving you total peace of mind across oceans.</p>
+                </div>
+                <div class="p-10 bg-white/5 border border-white/10 rounded-[2.5rem] hover:bg-white/10 transition-all">
+                    <div class="text-seablue text-4xl mb-6">
+                        <i class="fas fa-microchip"></i>
+                    </div>
+                    <h4 class="text-white text-xl font-bold mb-4">Smart Tracking</h4>
+                    <p class="text-blue-100/50 text-sm leading-relaxed">Our proprietary digital dashboard provides real-time updates from the moment your cargo hits our hub.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-32 bg-white overflow-hidden">
+    <div class="max-w-7xl mx-auto px-6">
+        <div class="grid lg:grid-cols-2 gap-20 items-center">
+            <div class="relative">
+                <img src="https://images.unsplash.com/photo-1494412574006-2591605330a1?auto=format&fit=crop&q=80" class="rounded-[4rem] shadow-2xl relative z-10" alt="Harbor">
+                <div class="absolute -bottom-10 -right-10 bg-seablue p-12 rounded-[3rem] text-white z-20 hidden md:block">
+                    <p class="text-5xl font-black mb-2">99.8%</p>
+                    <p class="text-[10px] font-bold uppercase tracking-widest">On-Time Delivery Rate</p>
+                </div>
+            </div>
+            <div>
+                <span class="text-seablue font-black text-xs uppercase tracking-[0.4em] mb-6 block">Our Network</span>
+                <h2 class="text-5xl font-black text-deepnavy leading-[1.1] mb-8">Germany to West Africa, Reimagined.</h2>
+                <p class="text-slate-500 text-lg mb-8 font-medium">We operate dedicated hubs in Hamburg and Bremen, connecting directly to major ports in Lagos, Tema, and Abidjan. Our local knowledge ensures your cargo clears customs without the typical delays.</p>
+                <div class="space-y-4 mb-10">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-seablue"><i class="fas fa-anchor"></i></div>
+                        <span class="font-bold text-deepnavy">Direct Port-to-Port Lines</span>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-seablue"><i class="fas fa-file-invoice"></i></div>
+                        <span class="font-bold text-deepnavy">Automated Customs Documentation</span>
+                    </div>
+                </div>
+                <a href="/contact/" class="inline-block bg-deepnavy text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-seablue transition-all">Talk to a Specialist</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-20 px-6">
+    <div class="max-w-7xl mx-auto bg-seablue rounded-[4rem] p-12 md:p-24 text-center text-white relative overflow-hidden">
+        <div class="relative z-10">
+            <h2 class="text-4xl md:text-6xl font-black mb-8 tracking-tighter">Ready to move with intelligence?</h2>
+            <p class="text-blue-100 text-xl max-w-2xl mx-auto mb-12">Join hundreds of companies scaling their trade between Europe and Africa with X-Plain.</p>
+            <div class="flex flex-wrap justify-center gap-6">
+                <button onclick="toggleCalculator()" class="bg-white text-seablue px-10 py-5 rounded-2xl font-black text-lg hover:scale-105 transition-all">Get a Free Quote</button>
+                <a href="/signup/" class="bg-deepnavy text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-white hover:text-deepnavy transition-all">Create Account</a>
+            </div>
+        </div>
+        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl"></div>
+        <div class="absolute bottom-0 left-0 w-64 h-64 bg-deepnavy/20 rounded-full -ml-32 -mb-32 blur-3xl"></div>
+    </div>
+</section>
+
+<script>
+    const trackingInput = document.getElementById('trackingInput');
+    const resultsDiv = document.getElementById('trackingResults');
+    const trackingForm = document.getElementById('trackingForm');
+
+    // DISABLE ENTER KEY ON TRACKING INPUT
+    trackingInput.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    trackingInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        if (query.length < 3) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        fetch(`/api/track-preview/?tracking_id=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                resultsDiv.innerHTML = '';
+                resultsDiv.style.display = 'block';
+
+                if (data.exists) {
+                    const link = document.createElement('a');
+                    link.href = '/login/';
+                    link.className = "flex items-center justify-between p-6 hover:bg-slate-50 transition-colors cursor-pointer group";
+                    link.innerHTML = `
+                        <div>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-seablue mb-1">Shipment Found</p>
+                            <p class="text-deepnavy font-bold text-lg">${data.tracking_id}</p>
+                            <p class="text-slate-400 text-xs mt-1">Status: <span class="text-deepnavy">${data.status}</span></p>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-seablue/10 flex items-center justify-center text-seablue group-hover:bg-seablue group-hover:text-white transition-all">
+                            <i class="fas fa-arrow-right"></i>
+                        </div>
+                    `;
+                    resultsDiv.appendChild(link);
+                } else {
+                    const div = document.createElement('div');
+                    div.className = "p-6 bg-slate-50 text-center cursor-default";
+                    div.innerHTML = `
+                        <i class="fas fa-search text-slate-300 text-2xl mb-3 block"></i>
+                        <p class="text-slate-500 font-bold text-sm">No record found for "${query}"</p>
+                        <p class="text-[10px] text-slate-400 uppercase mt-2">Check the ID and try again</p>
+                    `;
+                    resultsDiv.appendChild(div);
+                }
+            });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (trackingForm && !trackingForm.contains(e.target)) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+
+    if (trackingForm) {
+        trackingForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const trackingId = trackingInput.value.trim();
+            if (trackingId) {
+                window.location.href = '/track/?tracking_id=' + encodeURIComponent(trackingId);
+            } else {
+                alert('Please enter a valid tracking ID.');
+            }
+        });
+    }
+</script>
+{% endblock %}

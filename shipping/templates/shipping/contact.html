@@ -1,0 +1,170 @@
+{% extends 'shipping/base.html' %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+<div class="min-h-screen pt-24 pb-12 px-4 sm:px-6 lg:px-8 bg-slate-900 text-white relative overflow-hidden">
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none opacity-20">
+        <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-600 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute top-1/2 -right-24 w-80 h-80 bg-emerald-600 rounded-full blur-3xl animate-pulse delay-700"></div>
+    </div>
+
+    <div class="max-w-7xl mx-auto relative z-10">
+        <div class="text-center mb-16">
+            <h1 class="text-5xl md:text-7xl font-black tracking-tighter mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-400 to-emerald-400">
+                GLOBAL SUPPORT
+            </h1>
+            <p class="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto font-light">
+                Connect with our logistics architects. Whether you're tracking a manifest or scaling your supply chain, we are online.
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+            <div class="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-6 p-4 rounded-xl {% if message.tags == 'success' %}bg-emerald-500/20 text-emerald-400 border border-emerald-500/20{% else %}bg-red-500/20 text-red-400 border border-red-500/20{% endif %} text-xs font-bold uppercase tracking-widest animate-pulse">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                <form action="{% url 'contact' %}" method="POST" class="space-y-6">
+                    {% csrf_token %}
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">Your Name</label>
+                            <input type="text" name="contact_name" required
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-500"
+                                placeholder="Nana Yaw">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">Email Address</label>
+                            <input type="email" name="email" required
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-500"
+                                placeholder="wolf@xplain.com">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">Inquiry Type</label>
+                            <select name="subject" class="w-full bg-slate-800 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all appearance-none cursor-pointer">
+                                <option value="GENERAL" class="bg-slate-800 text-white">General Logistics Inquiry</option>
+                                <option value="TRACKING" class="bg-slate-800 text-white">Tracking & Terminal Issues</option>
+                                <option value="PRICING" class="bg-slate-800 text-white">Custom Freight Quotes</option>
+                                <option value="PARTNERSHIP" class="bg-slate-800 text-white">Global Partnership</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">Phone Number</label>
+                            <input type="tel" name="phone" required
+                                class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-500"
+                                placeholder="+233 ...">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold uppercase tracking-widest text-blue-400 mb-2">Message</label>
+                        <textarea name="message" rows="5" required
+                            class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all placeholder:text-slate-500"
+                            placeholder="Tell us about your cargo manifest..."></textarea>
+                    </div>
+
+                    <div class="space-y-4 pt-2">
+                        <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-emerald-600 hover:from-blue-500 hover:to-emerald-500 text-white font-bold py-4 rounded-xl shadow-lg transform active:scale-95 transition-all uppercase tracking-widest">
+                            Dispatch Message
+                        </button>
+                        
+                        <a href="{% url 'home' %}" class="block w-full text-center py-3 rounded-xl border border-white/10 text-slate-400 hover:bg-white/5 hover:text-white transition-all text-sm uppercase tracking-widest">
+                            Return to Home
+                        </a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="space-y-8 lg:pl-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer" onclick="focusLocation(5.6037, -0.1870)">
+                        <div class="w-12 h-12 bg-blue-600/20 rounded-full flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Ghana Hub</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Accra Digital Center,<br>Ring Road, Accra, Ghana</p>
+                    </div>
+
+                    <div class="p-6 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors cursor-pointer" onclick="focusLocation(53.5511, 9.9937)">
+                        <div class="w-12 h-12 bg-emerald-600/20 rounded-full flex items-center justify-center mb-4">
+                            <svg class="w-6 h-6 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        </div>
+                        <h3 class="text-xl font-bold mb-2">Germany Hub</h3>
+                        <p class="text-slate-400 text-sm leading-relaxed">Logistics Center North,<br>Hamburg, Germany</p>
+                    </div>
+                </div>
+
+                <div class="p-8 rounded-3xl bg-gradient-to-br from-blue-600/10 to-emerald-600/10 border border-white/10">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <span class="relative flex h-3 w-3">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-xs font-bold uppercase tracking-tighter text-emerald-400">Systems Operational</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-2">Instant Response</h3>
+                    <p class="text-slate-400 text-sm mb-6">Our AI-driven dispatch system ensures your inquiry is routed to the correct department within seconds.</p>
+                    
+                    <div id="contactMap" class="w-full h-64 rounded-2xl border border-white/10 z-0"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    const map = L.map('contactMap', {
+        zoomControl: false,
+        attributionControl: false
+    }).setView([25, 5], 2);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19
+    }).addTo(map);
+
+    const ghIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: "<div style='background-color:#2563eb;' class='w-3 h-3 rounded-full border-2 border-white shadow-[0_0_10px_#2563eb]'></div>",
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+    });
+
+    const deIcon = L.divIcon({
+        className: 'custom-div-icon',
+        html: "<div style='background-color:#10b981;' class='w-3 h-3 rounded-full border-2 border-white shadow-[0_0_10px_#10b981]'></div>",
+        iconSize: [12, 12],
+        iconAnchor: [6, 6]
+    });
+
+    L.marker([5.6037, -0.1870], {icon: ghIcon}).addTo(map).bindPopup("<b>Ghana Hub</b><br>Accra Terminal");
+    L.marker([53.5511, 9.9937], {icon: deIcon}).addTo(map).bindPopup("<b>Germany Hub</b><br>Hamburg Terminal");
+
+    function focusLocation(lat, lng) {
+        map.flyTo([lat, lng], 12, {
+            duration: 1.5
+        });
+    }
+</script>
+
+<style>
+    .leaflet-popup-content-wrapper {
+        background: rgba(15, 23, 42, 0.9) !important;
+        color: white !important;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+    }
+    .leaflet-popup-tip {
+        background: rgba(15, 23, 42, 0.9) !important;
+    }
+</style>
+{% endblock %}

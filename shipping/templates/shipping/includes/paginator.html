@@ -1,0 +1,38 @@
+<div class="mt-8 flex flex-col md:flex-row items-center justify-between gap-4 px-8 py-6 bg-slate-900/50 border border-white/5 rounded-[2rem] backdrop-blur-xl">
+    <div class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+        Showing <span class="text-emerald-500">{{ page_obj.start_index }}</span> - <span class="text-emerald-500">{{ page_obj.end_index }}</span> 
+        of {{ page_obj.paginator.count }} Logistics Manifests
+    </div>
+    
+    <div class="flex items-center gap-3">
+        {% if page_obj.has_previous %}
+            <a href="?page=1" class="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-500 border border-white/10 rounded-xl transition shadow-lg" title="First Page">
+                <i class="fas fa-angles-left text-xs"></i>
+            </a>
+            <a href="?page={{ page_obj.previous_page_number }}" class="px-6 py-2.5 bg-white/5 hover:bg-emerald-500/20 text-white border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition flex items-center gap-2">
+                <i class="fas fa-chevron-left"></i> Prev
+            </a>
+        {% else %}
+            <div class="px-6 py-2.5 bg-white/[0.02] text-slate-700 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
+                <i class="fas fa-chevron-left opacity-50"></i> Prev
+            </div>
+        {% endif %}
+
+        <div class="px-4 py-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
+            <span class="text-[10px] font-black text-emerald-500">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        </div>
+
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}" class="px-6 py-2.5 bg-white/5 hover:bg-emerald-500/20 text-white border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest transition flex items-center gap-2">
+                Next <i class="fas fa-chevron-right"></i>
+            </a>
+            <a href="?page={{ page_obj.paginator.num_pages }}" class="w-10 h-10 flex items-center justify-center bg-white/5 hover:bg-emerald-500/20 text-slate-400 hover:text-emerald-500 border border-white/10 rounded-xl transition shadow-lg" title="Last Page">
+                <i class="fas fa-angles-right text-xs"></i>
+            </a>
+        {% else %}
+            <div class="px-6 py-2.5 bg-white/[0.02] text-slate-700 border border-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest cursor-not-allowed">
+                Next <i class="fas fa-chevron-right opacity-50"></i>
+            </div>
+        {% endif %}
+    </div>
+</div>

@@ -1,0 +1,100 @@
+{% extends 'shipping/base.html' %}
+
+{% block title %}Login | X-plain Logistics{% endblock %}
+
+{% block extra_head %}
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: { seablue: '#0077b6', deepnavy: '#023e8a' },
+                fontFamily: { sans: ['Plus Jakarta Sans', 'sans-serif'] },
+            }
+        }
+    }
+</script>
+<style>
+    .btn-gradient {
+        background: linear-gradient(135deg, #0077b6 0%, #023e8a 100%);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-gradient:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px -5px rgba(0, 119, 182, 0.4);
+    }
+    .btn-gradient:active {
+        transform: translateY(0px);
+    }
+    
+    /* New Back Button Style */
+    .back-btn {
+        transition: all 0.3s ease;
+        border: 1px solid #e2e8f0;
+    }
+    .back-btn:hover {
+        background-color: white;
+        border-color: #0077b6;
+        color: #0077b6;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="flex-grow flex items-center justify-center px-6 py-12">
+    <div class="max-w-md w-full">
+        
+        <div class="mb-8 flex justify-center md:justify-start">
+            <a href="{% url 'home' %}" class="back-btn inline-flex items-center gap-3 px-6 py-2.5 rounded-full bg-white/50 text-slate-500 font-bold text-xs uppercase tracking-widest group">
+                <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                <span>Back to Home</span>
+            </a>
+        </div>
+
+        <div class="text-center mb-10">
+            <div class="text-3xl font-extrabold tracking-tighter text-seablue flex justify-center items-center gap-2 mb-2">
+                <i class="fas fa-anchor text-deepnavy"></i> X-<span class="text-deepnavy">PLAIN</span>
+            </div>
+            <h2 class="text-2xl font-black text-deepnavy">Welcome Back</h2>
+        </div>
+
+        {% if messages %}
+        <div class="mb-6 space-y-2">
+            {% for message in messages %}
+            <div class="p-4 rounded-2xl text-sm font-bold {% if message.tags == 'error' %}bg-red-50 text-red-600 border border-red-100{% else %}bg-emerald-50 text-emerald-600 border border-emerald-100{% endif %}">
+                <i class="fas {% if message.tags == 'error' %}fa-exclamation-circle{% else %}fa-check-circle{% endif %} mr-2"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <div class="bg-white p-10 rounded-[2.5rem] shadow-xl border border-slate-100">
+            <form action="{% url 'login' %}" method="POST" class="space-y-6">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                <div>
+                    <label class="block text-xs font-black uppercase tracking-widest text-slate-400 mb-2">Email</label>
+                    <input type="email" name="username" required class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-seablue focus:bg-white outline-none transition-all font-bold text-deepnavy" placeholder="name@company.com">
+                </div>
+                <div>
+                    <div class="flex justify-between mb-2">
+                        <label class="text-xs font-black uppercase tracking-widest text-slate-400">Password</label>
+                        <a href="#" class="text-xs font-bold text-seablue hover:underline">Forgot?</a>
+                    </div>
+                    <input type="password" name="password" required class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-seablue focus:bg-white outline-none transition-all font-bold text-deepnavy">
+                </div>
+                
+                <button type="submit" class="btn-gradient w-full text-white py-5 rounded-2xl font-extrabold text-lg flex items-center justify-center gap-3 group">
+                    <span>Secure Login</span>
+                    <i class="fas fa-lock text-sm opacity-50 group-hover:opacity-100 transition-opacity"></i>
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-sm text-slate-500 font-medium">New to X-plain? <a href="{% url 'signup' %}" class="text-seablue font-bold hover:underline">Start Shipping</a></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

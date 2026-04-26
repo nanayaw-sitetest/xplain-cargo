@@ -1,0 +1,389 @@
+{% extends 'shipping/base.html' %}
+
+{% block title %}Request Shipment | X-plain Terminal{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="max-w-5xl mx-auto px-6 py-12">
+    
+    <div class="mb-10">
+        <a href="{% url 'dashboard' %}" class="text-slate-400 hover:text-blue-600 font-bold text-xs uppercase tracking-widest transition flex items-center gap-2">
+            <i class="fas fa-arrow-left"></i> Back to Terminal
+        </a>
+        <h1 class="text-4xl font-black text-slate-900 mt-4">Initialize Manifest</h1>
+        
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
+            <p class="text-slate-500 font-bold uppercase tracking-tighter text-sm">Route: 
+                <span class="text-blue-600">
+                    {% if selected_route == 'GH_DE' %}Ghana to Germany
+                    {% elif selected_route == 'DE_GH' %}Germany to Ghana
+                    {% elif selected_route == 'GH_GH' %}Local (Ghana)
+                    {% else %}Local (Germany){% endif %}
+                </span>
+            </p>
+
+            <div class="md:w-1/2">
+                {% if selected_route == 'GH_DE' or selected_route == 'DE_GH' %}
+                <div class="bg-blue-50 border-l-4 border-blue-600 p-3 rounded-r-2xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-info-circle text-blue-600 text-xs"></i>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-blue-900">Pricing Policy: International</p>
+                    </div>
+                    <p class="text-[11px] font-bold text-blue-700 mt-1 ml-6">Calculated based on <span class="underline">Weight (KG)</span> only.</p>
+                </div>
+                {% else %}
+                <div class="bg-emerald-50 border-l-4 border-emerald-600 p-3 rounded-r-2xl">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-truck-fast text-emerald-600 text-xs"></i>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-emerald-900">Pricing Policy: Local Delivery</p>
+                    </div>
+                    <p class="text-[11px] font-bold text-emerald-700 mt-1 ml-6">Calculated based on <span class="underline">Total Distance (KM)</span>.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <form method="POST" id="shipmentForm" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {% csrf_token %}
+
+        <input type="hidden" name="origin_lat" id="origin_lat">
+        <input type="hidden" name="origin_lng" id="origin_lng">
+        <input type="hidden" name="destination_lat" id="destination_lat">
+        <input type="hidden" name="destination_lng" id="destination_lng">
+        
+        <div class="lg:col-span-2 space-y-8">
+            <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
+                <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                    <i class="fas fa-map-location-dot text-blue-600"></i> Route Mapping
+                </h3>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="relative">
+                        <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block ml-2">Origin Point</label>
+                        <input type="text" id="origin_search" name="origin_address" required 
+                               class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-bold text-slate-700 transition" 
+                               placeholder="Search origin location...">
+                        <div id="origin_results" class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-slate-100 hidden"></div>
+                    </div>
+                    <div class="relative">
+                        <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block ml-2">Destination Point</label>
+                        <input type="text" id="dest_search" name="destination_city" required 
+                               class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-bold text-slate-700 transition" 
+                               placeholder="Search destination...">
+                        <div id="dest_results" class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-xl border border-slate-100 hidden"></div>
+                    </div>
+                </div>
+
+                <div id="map" class="h-[400px] rounded-[2rem] bg-slate-100 border-4 border-white shadow-inner overflow-hidden z-10"></div>
+                
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Total Distance</p>
+                        <p id="dist_display" class="text-xl font-black text-slate-900">0.00 km</p>
+                        <input type="hidden" name="distance_km" id="distance_km_input" value="0">
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Est. Transit Time</p>
+                        <p id="time_display" class="text-xl font-black text-slate-900">--</p>
+                        <input type="hidden" name="travel_hours" id="travel_hours_input" value="0">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
+                <h3 class="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                    <i class="fas fa-boxes-stacked text-blue-600"></i> Cargo Specifications
+                </h3>
+                
+                <div class="space-y-6">
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block ml-2">Shipment Description</label>
+                        <textarea name="description" required rows="3"
+                                  class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-bold text-slate-700 transition" 
+                                  placeholder="What are you shipping? (e.g., Electronics, Documents, Textiles)"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block ml-2">Weight (KG)</label>
+                            <input type="number" step="0.01" name="weight_kg" id="weight_kg" required 
+                                   class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-black text-2xl text-blue-600 transition" 
+                                   placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block ml-2">Internal Ref (Optional)</label>
+                            <input type="text" name="internal_ref" class="w-full px-5 py-4 rounded-2xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-bold text-slate-700 transition" placeholder="Your Ref #">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-8">
+            <div class="bg-white rounded-[2.5rem] p-8 shadow-sm border border-slate-100">
+                <h3 class="text-lg font-black text-slate-900 mb-6 uppercase tracking-tight">Parties Involved</h3>
+                <div class="space-y-5">
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Sender Full Name</label>
+                        <input type="text" name="sender_name" required value="{{ user.get_full_name|default:user.username }}"
+                               class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-bold text-sm">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Sender Phone Number</label>
+                        <input type="tel" name="sender_phone" id="sender_phone" required
+                               class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-bold text-sm" placeholder="+233 XX XXX XXXX">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Receiver Full Name</label>
+                        <input type="text" name="receiver_name" required
+                               class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-bold text-sm">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Receiver Phone</label>
+                        <input type="tel" name="receiver_phone" id="receiver_phone" required
+                               class="w-full px-4 py-3 rounded-xl bg-slate-50 border border-slate-100 focus:border-blue-500 outline-none font-bold text-sm" placeholder="+233 XX XXX XXXX">
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-900 rounded-[2.5rem] p-8 text-white shadow-2xl shadow-blue-900/20 relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16"></div>
+                
+                <h3 class="text-sm font-black uppercase tracking-[0.2em] text-blue-400 mb-8">Fare Estimate</h3>
+                
+                <div class="space-y-4 mb-8">
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        <span>Base Freight</span>
+                        <span id="base_calc_display">--</span>
+                    </div>
+                    <div class="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
+                        <span>Fuel & Handling</span>
+                        <span>INC</span>
+                    </div>
+                    <div id="ghs_est_row" class="hidden flex justify-between items-center text-[10px] font-black text-emerald-400 uppercase tracking-widest border-t border-white/5 pt-3">
+                        <span>GHS Est.</span>
+                        <span id="ghs_total_display">₵0.00</span>
+                    </div>
+                    <div class="h-[1px] bg-white/10 w-full"></div>
+                    <div class="flex justify-between items-end">
+                        <span class="text-[10px] font-black uppercase text-blue-400 mb-1">Total Payable</span>
+                        <span id="total_fare_display" class="text-4xl font-black tracking-tighter">0.00</span>
+                        <input type="hidden" name="total_fare" id="total_fare_input" value="0">
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white py-5 rounded-2xl font-black text-sm uppercase tracking-widest transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-blue-600/20">
+                    Confirm Manifest
+                </button>
+                
+                <p class="text-[9px] text-center mt-6 text-slate-500 font-bold uppercase tracking-widest leading-relaxed">
+                    By confirming, you agree to X-plain <br> Global Logistics Terms of Service.
+                </p>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    const RATE_EUR_KG = parseFloat("{{ control.eur_price_per_kg|default:6.50 }}");
+    const RATE_EUR_KM = parseFloat("{{ control.eur_price_per_km|default:0.80 }}");
+    const RATE_GHS_KG = parseFloat("{{ control.ghs_price_per_kg|default:150.00 }}");
+    const RATE_GHS_KM = parseFloat("{{ control.ghs_price_per_km|default:25.00 }}");
+    const FX_RATE_TO_GHS = parseFloat("{{ exchange_rate.rate_to_ghs|default:0 }}");
+    const currentRoute = "{{ selected_route }}";
+
+    let map = L.map('map').setView([7.9465, -1.0232], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    let originMarker, destMarker, polyline;
+    let searchTimeout;
+
+    const weightInput = document.getElementById('weight_kg');
+    const distDisplay = document.getElementById('dist_display');
+    const distInput = document.getElementById('distance_km_input');
+    const timeDisplay = document.getElementById('time_display');
+    const hoursInput = document.getElementById('travel_hours_input');
+    const totalFareDisplay = document.getElementById('total_fare_display');
+    const totalFareInput = document.getElementById('total_fare_input');
+    const baseCalcDisplay = document.getElementById('base_calc_display');
+    const ghsRow = document.getElementById('ghs_est_row');
+    const ghsDisplay = document.getElementById('ghs_total_display');
+
+    function updateManifest() {
+    if (originMarker && destMarker) {
+        const latlng1 = originMarker.getLatLng();
+        const latlng2 = destMarker.getLatLng();
+        
+        // High-precision OSRM call with annotations for exact distance and straight-line continuity
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${latlng1.lng},${latlng1.lat};${latlng2.lng},${latlng2.lat}?overview=full&geometries=geojson&annotations=distance&continue_straight=true`;
+
+        fetch(osrmUrl)
+            .then(res => res.json())
+            .then(data => {
+                if (polyline) map.removeLayer(polyline);
+
+                if (data.code === 'Ok') {
+                    const route = data.routes[0];
+                    // OSRM returns meters; converting to high-precision km
+                    const routeDist = route.distance / 1000; 
+                    const routeSeconds = route.duration; 
+                    
+                    polyline = L.geoJSON(route.geometry, {
+                        style: { color: '#2563eb', weight: 5, opacity: 0.8 }
+                    }).addTo(map);
+                    
+                    distDisplay.innerText = routeDist.toFixed(3) + ' km'; // 3 decimal places for pinpoint precision
+                    distInput.value = routeDist.toFixed(3);
+                    
+                    const totalMinutes = Math.ceil(routeSeconds / 60);
+                    if (totalMinutes < 60) {
+                        timeDisplay.innerText = totalMinutes + ' mins';
+                    } else {
+                        const hrs = (totalMinutes / 60).toFixed(1);
+                        timeDisplay.innerText = hrs + ' hrs';
+                    }
+                    
+                    hoursInput.value = (totalMinutes / 60).toFixed(2);
+                    updatePricing(routeDist);
+                } else {
+                    throw new Error('No land route found');
+                }
+
+                const group = new L.featureGroup([originMarker, destMarker]);
+                map.fitBounds(group.getBounds().pad(0.2));
+            })
+            .catch(err => {
+                console.warn("Calculating high-precision geodesic fallback:", err);
+                if (polyline) map.removeLayer(polyline);
+
+                // Pinpoint Geodesic (Haversine) Calculation
+                const R = 6371; // Earth's radius in km
+                const dLat = (latlng2.lat - latlng1.lat) * Math.PI / 180;
+                const dLon = (latlng2.lng - latlng1.lng) * Math.PI / 180;
+                const a = 
+                    Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(latlng1.lat * Math.PI / 180) * Math.cos(latlng2.lat * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+                const straightLineDistKm = R * c;
+
+                // 1.12 is the industry standard buffer for Great Circle air routes vs actual flight paths
+                const fallbackDist = straightLineDistKm * 1.12; 
+
+                // Draw a high-visibility dashed arc for international logistics
+                polyline = L.polyline([latlng1, latlng2], {
+                    color: '#2563eb',
+                    weight: 4,
+                    opacity: 0.6,
+                    dashArray: '10, 10',
+                    lineJoin: 'round'
+                }).addTo(map);
+
+                distDisplay.innerText = fallbackDist.toFixed(3) + ' km (High-Precision Air/Sea)';
+                distInput.value = fallbackDist.toFixed(3);
+                timeDisplay.innerText = 'Calculating transit...';
+                
+                updatePricing(fallbackDist);
+
+                const group = new L.featureGroup([originMarker, destMarker]);
+                map.fitBounds(group.getBounds().pad(0.3));
+            });
+    }
+}
+
+    function updatePricing(calculatedDist = null) {
+        const weight = parseFloat(weightInput.value) || 0;
+        const dist = calculatedDist || parseFloat(distInput.value) || 0;
+        
+        let finalFare = 0;
+        let symbol = "€";
+        let unitDesc = "";
+
+        if (currentRoute === 'GH_GH') {
+            symbol = "₵";
+            finalFare = dist * RATE_GHS_KM;
+            unitDesc = `${dist.toFixed(1)} km @ ₵${RATE_GHS_KM}/km`;
+            ghsRow.classList.add('hidden');
+        } 
+        else if (currentRoute === 'DE_DE') {
+            symbol = "€";
+            finalFare = dist * RATE_EUR_KM;
+            unitDesc = `${dist.toFixed(1)} km @ €${RATE_EUR_KM}/km`;
+            ghsRow.classList.add('hidden');
+        } 
+        else {
+            symbol = "€";
+            finalFare = weight * RATE_EUR_KG;
+            unitDesc = `${weight.toFixed(1)} kg @ €${RATE_EUR_KG}/kg`;
+
+            if (FX_RATE_TO_GHS > 0 && (currentRoute === 'DE_GH' || currentRoute === 'GH_DE')) {
+                const ghsEst = finalFare * FX_RATE_TO_GHS;
+                ghsDisplay.innerText = "₵" + ghsEst.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                ghsRow.classList.remove('hidden');
+            }
+        }
+
+        baseCalcDisplay.innerText = unitDesc;
+        totalFareDisplay.innerText = symbol + finalFare.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+        totalFareInput.value = finalFare.toFixed(2);
+    }
+
+    weightInput.addEventListener('input', () => {
+        if (currentRoute !== 'GH_GH' && currentRoute !== 'DE_DE') {
+            updatePricing();
+        }
+    });
+
+    const originInp = document.getElementById('origin_search');
+    const destInp = document.getElementById('dest_search');
+
+    const handleInput = (e, isOrigin) => {
+        clearTimeout(searchTimeout);
+        const resultsDiv = isOrigin ? document.getElementById('origin_results') : document.getElementById('dest_results');
+        
+        // Start showing results after 2 characters for faster feedback
+        if (e.target.value.length < 2) {
+            resultsDiv.classList.add('hidden');
+            return;
+        }
+
+        // Reduced delay to 100ms for immediate response
+        searchTimeout = setTimeout(() => {
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${e.target.value}`)
+                .then(res => res.json())
+                .then(data => {
+                    resultsDiv.innerHTML = '';
+                    resultsDiv.classList.remove('hidden');
+                    data.forEach(item => {
+                        const div = document.createElement('div');
+                        div.className = 'px-4 py-3 hover:bg-slate-50 cursor-pointer font-bold text-xs text-slate-600 border-b border-slate-50 last:border-0';
+                        div.innerText = item.display_name;
+                        div.onclick = () => {
+                            e.target.value = item.display_name;
+                            const latlng = [parseFloat(item.lat), parseFloat(item.lon)];
+                            if (isOrigin) {
+                                if (originMarker) map.removeLayer(originMarker);
+                                originMarker = L.marker(latlng).addTo(map);
+                                document.getElementById('origin_lat').value = item.lat;
+                                document.getElementById('origin_lng').value = item.lon;
+                            } else {
+                                if (destMarker) map.removeLayer(destMarker);
+                                destMarker = L.marker(latlng).addTo(map);
+                                document.getElementById('destination_lat').value = item.lat;
+                                document.getElementById('destination_lng').value = item.lon;
+                            }
+                            resultsDiv.classList.add('hidden');
+                            updateManifest();
+                        };
+                        resultsDiv.appendChild(div);
+                    });
+                });
+        }, 100);
+    };
+
+    originInp.addEventListener('input', (e) => handleInput(e, true));
+    destInp.addEventListener('input', (e) => handleInput(e, false));
+</script>
+{% endblock %}

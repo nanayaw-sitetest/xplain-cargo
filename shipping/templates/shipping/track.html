@@ -1,0 +1,140 @@
+{% extends 'shipping/base.html' %}
+
+{% block title %}Track Shipment | X-plain Global{% endblock %}
+
+{% block content %}
+<main class="max-w-4xl mx-auto px-6 py-12">
+    <div class="mb-8">
+        <a href="{% url 'dashboard' %}" class="inline-flex items-center gap-2 text-slate-500 hover:text-blue-600 transition font-black text-xs uppercase tracking-widest group">
+            <i class="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i> 
+            Return to Dashboard
+        </a>
+    </div>
+
+    <div class="text-center mb-12">
+        <h1 class="text-4xl font-black text-slate-900 mb-4 tracking-tighter">Track Your Cargo</h1>
+        <p class="text-slate-500 font-medium">Enter your X-plain tracking ID (e.g., XP-XXXXXXXX) for live status.</p>
+        
+        <form action="{% url 'track' %}" method="GET" class="mt-8 flex gap-2 max-w-lg mx-auto">
+            <input type="text" name="tracking_id" value="{{ query|default:'' }}" 
+                   placeholder="XP-XXXXXX" 
+                   class="w-full px-6 py-4 rounded-2xl border-2 border-slate-200 focus:border-blue-600 outline-none font-bold text-lg transition shadow-sm">
+            <button type="submit" class="bg-blue-600 hover:bg-slate-900 text-white px-8 rounded-2xl font-black transition flex items-center gap-2">
+                <i class="fas fa-search"></i> <span class="hidden md:block">Locate</span>
+            </button>
+        </form>
+
+        {% if error_message %}
+            <div class="mt-6 p-4 bg-red-50 text-red-600 rounded-2xl font-bold border border-red-100 animate-bounce">
+                <i class="fas fa-exclamation-circle mr-2"></i> {{ error_message }}
+            </div>
+        {% endif %}
+    </div>
+
+    {% if shipment %}
+    <div class="bg-white rounded-[3rem] shadow-2xl shadow-slate-200/50 overflow-hidden border border-slate-100">
+        <div class="bg-slate-900 p-10 text-white flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-2">Global Logistics Manifest</p>
+                <h2 class="text-3xl font-black tracking-tighter">{{ shipment.tracking_number }}</h2>
+            </div>
+            <div class="flex flex-col items-center md:items-end">
+                <div class="bg-blue-600 px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest shadow-lg shadow-blue-500/40">
+                    {{ shipment.get_status_display }}
+                </div>
+                <p class="text-[10px] text-slate-400 font-bold mt-3 uppercase tracking-tighter">Last Checked: {{ shipment.updated_at|date:"H:i" }} GMT</p>
+            </div>
+        </div>
+
+        <div class="p-10 border-b border-slate-50 bg-slate-50/50">
+            <div class="relative py-8">
+                <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 rounded-full"></div>
+                <div class="absolute top-1/2 left-0 h-1 bg-blue-600 -translate-y-1/2 rounded-full transition-all duration-1000" 
+                     style="width: {{ shipment.get_progress_percentage }}%">
+                </div>
+
+                <div class="relative flex justify-between">
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-md {% if shipment.get_progress_percentage >= 5 %}bg-blue-600 text-white{% else %}bg-white text-slate-400{% endif %}">
+                            <i class="fas fa-box-open text-xs"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-tighter text-slate-500">Manifested</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-md {% if shipment.get_progress_percentage >= 60 %}bg-blue-600 text-white{% else %}bg-white text-slate-400{% endif %}">
+                            <i class="fas fa-plane-departure text-xs"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-tighter text-slate-500">Departed</span>
+                    </div>
+                    <div class="flex flex-col items-center gap-3">
+                        <div class="w-10 h-10 rounded-full flex items-center justify-center border-4 border-white shadow-md {% if shipment.status == 'DELIVERED' %}bg-green-500 text-white{% else %}bg-white text-slate-400{% endif %}">
+                            <i class="fas fa-check text-xs"></i>
+                        </div>
+                        <span class="text-[10px] font-black uppercase tracking-tighter text-slate-500">Delivered</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-10 grid md:grid-cols-2 gap-12">
+            <div class="space-y-8">
+                <div class="flex gap-5">
+                    <div class="w-14 h-14 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-900 shrink-0">
+                        <i class="fas fa-map-marker-alt text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Origin Terminal</p>
+                        <p class="text-xl font-black text-slate-900">{{ shipment.sender_city|default:"Logistics Hub" }}</p>
+                        <p class="text-[11px] text-slate-500 font-bold mt-1 uppercase">{{ shipment.sender_name }}</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-5">
+                    <div class="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg shadow-blue-500/30">
+                        <i class="fas fa-location-arrow text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Destination</p>
+                        <p class="text-xl font-black text-slate-900">{{ shipment.destination_city|default:shipment.receiver_city }}</p>
+                        <p class="text-[11px] text-slate-500 font-bold mt-1 uppercase">{{ shipment.receiver_name }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-8">
+                <div class="flex gap-5">
+                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
+                        <i class="fas fa-satellite-dish text-xl animate-pulse"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Current Location</p>
+                        <p class="text-xl font-black text-slate-900">{{ shipment.current_location }}</p>
+                        <p class="text-[11px] text-blue-500 font-bold mt-1">
+                            <i class="far fa-clock mr-1"></i> As of {{ shipment.updated_at|date:"M d, H:i" }} GMT
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex gap-5">
+                    <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shrink-0">
+                        <i class="fas fa-calendar-alt text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Estimated Arrival</p>
+                        <p class="text-xl font-black text-slate-900">
+                            {% if shipment.estimated_arrival %}
+                                {{ shipment.estimated_arrival|date:"d M, Y" }} <span class="text-blue-600 text-sm">@ {{ shipment.estimated_arrival|date:"H:i" }}</span>
+                            {% else %}
+                                Calculating...
+                            {% endif %}
+                        </p>
+                        <p class="text-[11px] text-slate-400 font-bold mt-1 uppercase">Route: {{ shipment.get_transport_mode_display }}</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</main>
+{% endblock %}

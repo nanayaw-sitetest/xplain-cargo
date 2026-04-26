@@ -1,0 +1,403 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    <link rel="icon" type="image/jpeg" href="{% static 'images/main_logo.JPG' %}">
+    <title>{% block title %}X-plain Global{% endblock %}</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        deepnavy: '#023e8a',
+                        seablue: '#0077b6',
+                    },
+                    fontFamily: {
+                        sans: ['Plus Jakarta Sans', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* Prevent horizontal scroll caused by off-screen menu */
+        html, body {
+            overflow-x: hidden;
+            position: relative;
+            width: 100%;
+            scroll-behavior: smooth;
+        }
+
+        .modal-glass { 
+            background: rgba(255, 255, 255, 0.85); 
+            backdrop-filter: blur(25px); 
+            border: 1px solid rgba(255, 255, 255, 0.4); 
+        }
+
+        .toggle-container {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 14px;
+            margin-bottom: 1.5rem;
+        }
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 8px 0;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            color: #64748b;
+        }
+        .toggle-radio:checked + .toggle-option {
+            background: white;
+            color: #023e8a;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        body.modal-open { overflow: hidden; }
+        
+        #mobileMenu.active {
+            transform: translateX(0);
+        }
+
+        /* 3D Back to Top Button Styles */
+        #backToTop {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 60px;
+            height: 60px;
+            background: white;
+            color: #023e8a;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            visibility: hidden;
+            z-index: 999;
+            box-shadow: 
+                0 10px 20px rgba(2, 62, 138, 0.2),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        /* Rotate the plane icon so the nose faces up */
+        #backToTop i {
+            transform: rotate(-45deg);
+        }
+
+        #backToTop.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        #backToTop:hover {
+            transform: translateY(-5px) scale(1.05);
+            background: #023e8a;
+            color: white;
+            box-shadow: 
+                0 15px 30px rgba(2, 62, 138, 0.3),
+                inset 0 -4px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        #backToTop.launching {
+            transform: translateY(-100vh);
+            opacity: 0;
+            transition: all 0.8s ease-in;
+        }
+
+        /* Fix for mobile: Move button higher to avoid covering developer details */
+        @media (max-width: 768px) {
+            #backToTop {
+                bottom: 120px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+        }
+    </style>
+
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-slate-50 min-h-screen flex flex-col font-sans">
+
+    {% if global_control.show_banner and global_control.banner_message %}
+    <div class="sticky top-0 z-[9999] {{ global_control.banner_color }} text-white py-3 px-6 shadow-2xl transition-all duration-300">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <span class="flex h-2 w-2 relative">
+                    <span class="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-white opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-white"></span>
+                </span>
+                <p class="text-[10px] md:text-xs font-black uppercase tracking-[0.2em]">
+                    <i class="fas fa-bullhorn mr-2"></i>
+                    {{ global_control.banner_message }}
+                </p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" class="text-white/50 hover:text-white transition">
+                <i class="fas fa-times text-xs"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <nav class="bg-white sticky top-0 z-50 border-b border-slate-200/60">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+            <a href="/" class="flex items-center gap-4 hover:opacity-80 transition-opacity">
+                <img src="{% static 'images/main_logo.JPG' %}" alt="X-plain Logo" class="h-16 w-auto object-contain">
+                <div class="flex flex-col justify-center">
+                    <span class="text-deepnavy font-black text-xl tracking-tighter leading-none uppercase">X-Plain Cargo</span>
+                    <span class="text-seablue font-bold text-[10px] uppercase tracking-[0.2em] leading-tight">& Last Mile Delivery</span>
+                </div>
+            </a>
+            
+            <div class="hidden lg:flex items-center gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'about' %}" class="flex items-center space-x-2 hover:text-blue-400 transition-all group text-seablue">
+                        <svg class="w-4 h-4 text-emerald-400 group-hover:animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                        <span class="font-medium tracking-wide">About Us</span>
+                    </a>
+                    <a href="{% url 'contact' %}" class="hover:text-seablue transition">Contact Us</a>
+                    
+                    <button onclick="toggleCalculator()" class="hover:text-seablue transition flex items-center gap-2 uppercase font-black">
+                        <i class="fas fa-calculator text-seablue"></i> Calculator
+                    </button>
+                    
+                    <div class="h-6 w-[1px] bg-slate-200"></div>
+
+                    <a href="{% url 'admin_dashboard' %}" class="hover:text-seablue transition flex items-center gap-2">
+                        <i class="fas fa-user-shield text-xs"></i> Admin
+                    </a>
+
+                    <a href="/login/" class="hover:text-seablue transition">Portal Login</a>
+                    <a href="/signup/" class="bg-deepnavy text-white px-7 py-3 rounded-xl hover:bg-seablue transition-all shadow-lg shadow-blue-900/10">Start Shipping</a>
+                {% else %}
+                    {% if user.is_staff %}
+                        <a href="{% url 'admin_dashboard' %}" class="hover:text-seablue transition flex items-center gap-2">
+                            <i class="fas fa-user-shield text-xs"></i> Admin Profile
+                        </a>
+                    {% else %}
+                        <a href="/dashboard/" class="hover:text-seablue transition flex items-center gap-2">
+                            <i class="fas fa-user text-xs"></i> Client Profile
+                        </a>
+                    {% endif %}
+                    
+                    <div class="h-6 w-[1px] bg-slate-200"></div>
+                    
+                    <form action="{% url 'logout' %}" method="post" class="inline">
+                        {% csrf_token %}
+                        <button type="submit" class="bg-red-50 text-red-600 px-7 py-3 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-lg shadow-red-900/5 font-black">
+                            Logout <i class="fas fa-sign-out-alt ml-2"></i>
+                        </button>
+                    </form>
+                {% endif %}
+            </div>
+
+            <button onclick="toggleMobileMenu()" class="lg:hidden w-12 h-12 flex items-center justify-center bg-slate-50 rounded-xl border border-slate-200 text-deepnavy">
+                <i class="fas fa-bars-staggered"></i>
+            </button>
+        </div>
+
+        <div id="mobileMenu" class="fixed inset-y-0 right-0 w-[280px] bg-white shadow-2xl z-[1001] transform translate-x-full transition-transform duration-300 ease-in-out lg:hidden border-l border-slate-100">
+            <div class="p-8">
+                <div class="flex justify-between items-center mb-10">
+                    <span class="text-xs font-black uppercase tracking-widest text-slate-400">Navigation</span>
+                    <button onclick="toggleMobileMenu()" class="text-slate-400 hover:text-red-500 transition">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <div class="flex flex-col gap-6 text-sm font-black uppercase tracking-widest text-deepnavy">
+                    {% if not user.is_authenticated %}
+                        <a href="{% url 'about' %}" class="flex items-center gap-3 text-seablue">
+                            <i class="fas fa-bolt text-emerald-400"></i> About Us
+                        </a>
+                        <a href="{% url 'contact' %}">Contact Us</a>
+                        <button onclick="toggleCalculator(); toggleMobileMenu();" class="text-left uppercase font-black">Calculator</button>
+                        
+                        <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3 border-t border-slate-100 pt-6">
+                            <i class="fas fa-user-shield text-xs"></i> Admin Access
+                        </a>
+
+                        <a href="/login/">Portal Login</a>
+                        <a href="/signup/" class="bg-deepnavy text-white text-center py-4 rounded-xl shadow-lg">Start Shipping</a>
+                    {% else %}
+                        {% if user.is_staff %}
+                            <a href="{% url 'admin_dashboard' %}" class="flex items-center gap-3 text-emerald-600">
+                                <i class="fas fa-user-shield"></i> Admin Dashboard
+                            </a>
+                        {% endif %}
+                        <a href="/dashboard/">My Dashboard</a>
+                        <form action="{% url 'logout' %}" method="post" class="mt-4">
+                            {% csrf_token %}
+                            <button type="submit" class="w-full bg-red-50 text-red-600 py-4 rounded-xl font-black">Logout</button>
+                        </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex-grow">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer class="bg-white border-t border-slate-100 py-12">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+        <div class="flex flex-wrap justify-center gap-4 mb-8 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            {% for rate in global_rates %}
+            <div class="flex flex-col items-center gap-1 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
+                <span class="text-slate-600">1 EUR = {{ rate.rate_to_ghs }} {{ rate.currency_code }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <p class="text-[10px] text-slate-400 font-bold tracking-widest mb-6">
+            &copy; 2026 X-PLAIN LOGISTICS SYSTEMS. GLOBAL OPS DEPT.
+        </p>
+
+        <div class="flex items-center justify-center gap-0.5">
+            <span class="text-lg text-slate-600 font-black uppercase tracking-tight mr-[-4px]">Developed by Wolf</span>
+            <img src="{% static 'images/Wolf2.PNG' %}" alt="Wolf" class="h-12 w-auto object-contain">
+            <span class="text-lg text-slate-600 font-black tracking-tight ml-[-4px]"> +233560708067</span>
+        </div>
+    </div>
+</footer>
+
+    <button id="backToTop" title="Back to top">
+        <i class="fas fa-plane"></i>
+    </button>
+
+    <div id="calcModal" class="fixed inset-0 z-[1002] flex items-center justify-center p-4 hidden">
+        <div class="absolute inset-0 bg-deepnavy/90 backdrop-blur-md" onclick="toggleCalculator()"></div>
+        <div class="modal-glass max-w-2xl w-full p-8 md:p-12 rounded-[2.5rem] shadow-2xl relative animate-in fade-in zoom-in duration-300 overflow-y-auto max-h-[90vh]">
+            <button onclick="toggleCalculator()" class="absolute top-6 right-6 w-10 h-10 flex items-center justify-center rounded-full bg-white text-deepnavy shadow-xl z-[110]">
+                <i class="fas fa-times"></i>
+            </button>
+            
+            <div class="text-center mb-8">
+                <h3 class="text-2xl font-black text-deepnavy tracking-tight">Shipping Calculator</h3>
+                <div class="grid grid-cols-2 gap-4 mt-6">
+                    <div class="toggle-container">
+                        <input type="radio" name="currencyMode" id="currEUR" value="EUR" checked class="toggle-radio hidden" onchange="calculateRate()">
+                        <label for="currEUR" class="toggle-option">EUR (€)</label>
+                        <input type="radio" name="currencyMode" id="currGHS" value="GHS" class="toggle-radio hidden" onchange="calculateRate()">
+                        <label for="currGHS" class="toggle-option">GHS (₵)</label>
+                    </div>
+                    <div class="toggle-container">
+                        <input type="radio" name="metricMode" id="metricWeight" value="weight" checked class="toggle-radio hidden" onchange="calculateRate()">
+                        <label for="metricWeight" class="toggle-option">Weight</label>
+                        <input type="radio" name="metricMode" id="metricDist" value="distance" class="toggle-radio hidden" onchange="calculateRate()">
+                        <label for="metricDist" class="toggle-option">Distance</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <input type="number" id="calcMain" oninput="calculateRate()" class="w-full px-6 py-5 rounded-2xl bg-white border border-slate-200 outline-none focus:border-seablue font-bold text-2xl text-center" placeholder="0.00">
+            </div>
+
+            <div class="bg-deepnavy rounded-3xl p-8 text-center text-white shadow-xl">
+                <p id="rateType" class="text-[9px] font-bold uppercase tracking-widest opacity-50 mb-2">Calculating Rate...</p>
+                <div class="text-4xl font-black" id="displayPrice">€0.00</div>
+            </div>
+            <a href="/signup/" class="block w-full mt-6 bg-seablue text-white text-center py-4 rounded-xl font-black hover:bg-deepnavy transition-all">Start Shipping Now</a>
+        </div>
+    </div>
+
+    <script>
+        const EUR_KG = parseFloat("{{ global_control.eur_price_per_kg|default:6.50 }}");
+        const EUR_KM = parseFloat("{{ global_control.eur_price_per_km|default:0.80 }}");
+        const GHS_KG = parseFloat("{{ global_control.ghs_price_per_kg|default:150.00 }}");
+        const GHS_KM = parseFloat("{{ global_control.ghs_price_per_km|default:25.00 }}");
+
+        function toggleCalculator() {
+            const modal = document.getElementById('calcModal');
+            modal.classList.toggle('hidden');
+            document.body.classList.toggle('modal-open');
+            if (!modal.classList.contains('hidden')) calculateRate();
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('active');
+            if (menu.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        function calculateRate() {
+            const currency = document.querySelector('input[name="currencyMode"]:checked').value;
+            const metric = document.querySelector('input[name="metricMode"]:checked').value;
+            const mainVal = parseFloat(document.getElementById('calcMain').value) || 0;
+            const displayPrice = document.getElementById('displayPrice');
+            const rateType = document.getElementById('rateType');
+
+            let baseRate = 0;
+            let symbol = currency === 'GHS' ? 'GH₵' : '€';
+            let unit = metric === 'weight' ? 'kg' : 'km';
+
+            if (currency === 'GHS') {
+                baseRate = metric === 'weight' ? GHS_KG : GHS_KM;
+            } else {
+                baseRate = metric === 'weight' ? EUR_KG : EUR_KM;
+            }
+
+            const total = mainVal * baseRate;
+            rateType.innerText = `Standard Rate: ${symbol}${baseRate.toFixed(2)}/${unit}`;
+            displayPrice.innerText = `${symbol}${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+        }
+
+        // Back to Top Logic
+        const btn = document.getElementById('backToTop');
+
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                btn.classList.add('show');
+            } else {
+                btn.classList.remove('show');
+            }
+        });
+
+        btn.addEventListener('click', () => {
+            btn.classList.add('launching');
+            
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+            // Reset the button position after the scroll and animation
+            setTimeout(() => {
+                btn.classList.remove('launching');
+                btn.classList.remove('show');
+            }, 800);
+        });
+    </script>
+</body>
+</html>

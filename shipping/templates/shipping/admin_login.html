@@ -1,0 +1,101 @@
+{% extends 'shipping/base.html' %}
+{% load static %}
+
+{% block title %}Wolf Control | Secure Terminal{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Custom terminal styles that don't clash with global brand colors */
+    .terminal-container {
+        background-color: #121212;
+        color: #f3f4f6;
+    }
+    .terminal-card {
+        background: #1a1a1a;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    /* Simple utility for the dark background focus */
+    .input-dark {
+        background-color: rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: white;
+        transition: all 0.3s ease;
+    }
+    .input-dark:focus {
+        border-color: #0077b6; /* seablue from base */
+        outline: none;
+    }
+    /* Dark variant of the back button for the terminal look */
+    .back-btn-dark {
+        transition: all 0.3s ease;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
+    }
+    .back-btn-dark:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+        border-color: #0077b6;
+        color: #0077b6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="terminal-container flex-grow flex items-center justify-center py-12">
+    <div class="w-full max-w-md p-8">
+        
+        <div class="mb-8 flex justify-center md:justify-start">
+            <a href="{% url 'home' %}" class="back-btn-dark inline-flex items-center gap-3 px-6 py-2.5 rounded-full text-gray-400 font-bold text-xs uppercase tracking-widest group">
+                <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
+                <span>Back to Home</span>
+            </a>
+        </div>
+
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-seablue/10 rounded-full mb-4 border border-seablue/20">
+                <i class="fas fa-user-shield text-2xl text-seablue"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-tight text-white">COMMAND TERMINAL</h1>
+            <p class="text-gray-500 text-sm mt-2 uppercase tracking-widest">Authorized Personnel Only</p>
+        </div>
+
+        <div class="terminal-card rounded-2xl p-8 shadow-2xl backdrop-blur-sm">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="bg-red-500/10 border border-red-500/50 text-red-500 p-3 rounded-lg text-sm mb-6 flex items-center gap-2">
+                        <i class="fas fa-exclamation-triangle"></i> {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.GET.next }}">
+                <div class="space-y-6">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Admin Email</label>
+                        <input type="email" name="username" required
+                            class="input-dark w-full rounded-xl px-4 py-3"
+                            placeholder="wolf@wolvatarr.com">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-400 uppercase mb-2">Access Key</label>
+                        <input type="password" name="password" required
+                            class="input-dark w-full rounded-xl px-4 py-3"
+                            placeholder="••••••••">
+                    </div>
+
+                    <button type="submit" 
+                        class="w-full bg-seablue hover:bg-deepnavy text-white font-bold py-4 rounded-xl transition-all shadow-lg shadow-seablue/20 flex items-center justify-center gap-2 uppercase tracking-widest text-sm">
+                        Initialize Session <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <p class="text-center text-gray-600 text-[10px] mt-8 uppercase tracking-[0.2em]">
+            System Hardened by Wolf-Control Architecture
+        </p>
+    </div>
+</div>
+{% endblock %}
