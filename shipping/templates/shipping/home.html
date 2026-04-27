@@ -143,42 +143,50 @@
         </div>
 
         <div class="grid md:grid-cols-3 gap-8">
-            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-deepnavy transition-all duration-500 overflow-hidden">
+            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-[#0EA5E9] transition-all duration-500 overflow-hidden shadow-sm hover:shadow-xl">
                 <div class="relative z-10">
                     <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-8 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-ship text-2xl text-seablue"></i>
+                        <i class="fas fa-ship text-2xl text-[#0EA5E9]"></i>
                     </div>
-                    <h4 class="text-2xl font-black text-deepnavy group-hover:text-white mb-4">Ocean Freight</h4>
-                    <p class="text-slate-500 group-hover:text-blue-100/60 leading-relaxed mb-8">Cost-effective FCL and LCL solutions for large-scale cargo movements between European ports and West Africa.</p>
-                    <ul class="space-y-3 text-sm font-bold text-deepnavy group-hover:text-white">
-                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-seablue"></i> Full Container (FCL)</li>
-                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-seablue"></i> Groupage (LCL)</li>
+                    <a href="{% url 'ocean_freight' %}" class="block no-underline">
+                        <h4 class="text-2xl font-black text-deepnavy group-hover:text-white mb-4 transition-colors">Ocean Freight</h4>
+                    </a>
+                    <p class="text-slate-500 group-hover:text-white leading-relaxed mb-8 transition-colors">Cost-effective FCL and LCL solutions for large-scale cargo movements between European ports and West Africa.</p>
+                    <ul class="space-y-3 text-sm font-black text-black">
+                        <li class="flex items-center gap-3"><i class="fas fa-check stroke-[3px]"></i> Full Container (FCL)</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check stroke-[3px]"></i> Groupage (LCL)</li>
                     </ul>
                 </div>
             </div>
-            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-seablue transition-all duration-500 overflow-hidden">
+
+            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-white transition-all duration-500 overflow-hidden shadow-sm hover:shadow-xl">
                 <div class="relative z-10">
                     <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-8 group-hover:scale-110 transition-transform">
                         <i class="fas fa-plane text-2xl text-seablue"></i>
                     </div>
-                    <h4 class="text-2xl font-black text-deepnavy group-hover:text-white mb-4">Air Logistics</h4>
-                    <p class="text-slate-500 group-hover:text-white/80 leading-relaxed mb-8">Priority handling for time-sensitive shipments, reaching major African hubs in under 72 hours.</p>
-                    <ul class="space-y-3 text-sm font-bold text-deepnavy group-hover:text-white">
-                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-white"></i> Express Delivery</li>
-                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-white"></i> Temperature Control</li>
+                    <a href="{% url 'air_logistics' %}" class="block no-underline">
+                        <h4 class="text-2xl font-black text-deepnavy mb-4">Air Logistics</h4>
+                    </a>
+                    <p class="text-slate-500 leading-relaxed mb-8">Priority handling for time-sensitive shipments, reaching major African hubs in under 72 hours.</p>
+                    <ul class="space-y-3 text-sm font-black text-black">
+                        <li class="flex items-center gap-3"><i class="fas fa-check stroke-[3px]"></i> Express Delivery</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check stroke-[3px]"></i> Temperature Control</li>
                     </ul>
                 </div>
             </div>
-            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-deepnavy transition-all duration-500 overflow-hidden">
+
+            <div class="group relative p-10 rounded-[3rem] bg-slate-50 hover:bg-emerald-500 transition-all duration-500 overflow-hidden shadow-sm hover:shadow-xl">
                 <div class="relative z-10">
                     <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm mb-8 group-hover:scale-110 transition-transform">
-                        <i class="fas fa-truck text-2xl text-seablue"></i>
+                        <i class="fas fa-truck text-2xl text-emerald-500"></i>
                     </div>
-                    <h4 class="text-2xl font-black text-deepnavy group-hover:text-white mb-4">Land Transit</h4>
-                    <p class="text-slate-500 group-hover:text-blue-100/60 leading-relaxed mb-8">Cross-border haulage and last-mile delivery services utilizing our fleet of secured, GPS-tracked vehicles.</p>
-                    <ul class="space-y-3 text-sm font-bold text-deepnavy group-hover:text-white">
-                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-seablue"></i> Inter-State Delivery</li>
-                        <li class="flex items-center gap-3"><i class="fas fa-check text-[10px] text-seablue"></i> Door-to-Door</li>
+                    <a href="{% url 'land_transit' %}" class="block no-underline">
+                        <h4 class="text-2xl font-black text-deepnavy group-hover:text-white mb-4 transition-colors">Land Transit</h4>
+                    </a>
+                    <p class="text-slate-500 group-hover:text-white leading-relaxed mb-8 transition-colors">Cross-border haulage and last-mile delivery services utilizing our fleet of secured, GPS-tracked vehicles.</p>
+                    <ul class="space-y-3 text-sm font-black text-black">
+                        <li class="flex items-center gap-3"><i class="fas fa-check stroke-[3px]"></i> Inter-State Delivery</li>
+                        <li class="flex items-center gap-3"><i class="fas fa-check stroke-[3px]"></i> Door-to-Door</li>
                     </ul>
                 </div>
             </div>
@@ -255,15 +263,14 @@
         <div class="grid lg:grid-cols-2 gap-20 items-center">
             <div class="relative">
                 <img src="https://images.unsplash.com/photo-1494412574006-2591605330a1?auto=format&fit=crop&q=80" class="rounded-[4rem] shadow-2xl relative z-10" alt="Harbor">
-                <div class="absolute -bottom-10 -right-10 bg-seablue p-12 rounded-[3rem] text-white z-20 hidden md:block">
-                    <p class="text-5xl font-black mb-2">99.8%</p>
-                    <p class="text-[10px] font-bold uppercase tracking-widest">On-Time Delivery Rate</p>
-                </div>
+               <div class="absolute -bottom-10 -right-10 bg-seablue rounded-[3rem] overflow-hidden z-20 hidden md:block shadow-2xl">
+    <img src="/static/images/download (1).png" alt="Delivery Statistics" class="w-full h-full object-cover">
+</div>
             </div>
             <div>
                 <span class="text-seablue font-black text-xs uppercase tracking-[0.4em] mb-6 block">Our Network</span>
                 <h2 class="text-5xl font-black text-deepnavy leading-[1.1] mb-8">Germany to West Africa, Reimagined.</h2>
-                <p class="text-slate-500 text-lg mb-8 font-medium">We operate dedicated hubs in Hamburg and Bremen, connecting directly to major ports in Lagos, Tema, and Abidjan. Our local knowledge ensures your cargo clears customs without the typical delays.</p>
+                <p class="text-slate-500 text-lg mb-8 font-medium">We operate dedicated hubs in Hamburg and Bremen, connecting directly to major ports in West Africa. Our local knowledge ensures your cargo clears customs without the typical delays.</p>
                 <div class="space-y-4 mb-10">
                     <div class="flex items-center gap-4">
                         <div class="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center text-seablue"><i class="fas fa-anchor"></i></div>

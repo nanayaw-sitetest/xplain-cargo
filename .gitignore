@@ -1,7 +1,7 @@
 xplain_cargo/settings/local.py
-
 .env
 venv/
 *.sqlite3
 __pycache__/
 *.pyc
+staticfiles/

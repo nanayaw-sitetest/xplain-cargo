@@ -1,0 +1,312 @@
+{% extends 'shipping/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+
+    :root {
+        --land-green: #2e7d32; /* Deep organic green for land transit */
+        --deep-charcoal: #0f0f0f;
+        --soft-white: #f4f4f2; 
+        --pure-white: #ffffff;
+        --accent-gray: #1a1a1a;
+    }
+
+    body {
+        background-color: var(--soft-white);
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        margin: 0;
+        padding: 0;
+        color: var(--deep-charcoal);
+    }
+
+    /* CUSTOM GRID SYSTEM */
+    .wolf-grid {
+        max-width: 1300px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    /* TERRESTRIAL HERO ARCHITECTURE */
+    .terrestrial-terminal {
+        background: var(--deep-charcoal);
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        position: relative;
+        overflow: hidden;
+        border-bottom: 12px solid var(--land-green);
+    }
+
+    .hero-media-layer {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 65%;
+        height: 100%;
+        z-index: 1;
+    }
+
+    .hero-media-layer img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        mask-image: linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0));
+        -webkit-mask-image: linear-gradient(to left, rgba(0,0,0,1) 50%, rgba(0,0,0,0));
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 5;
+        width: 100%;
+        padding: 80px 0;
+    }
+
+    .back-nav {
+        text-decoration: none;
+        color: var(--land-green);
+        font-weight: 800;
+        text-transform: uppercase;
+        font-size: 0.7rem;
+        letter-spacing: 3px;
+        border: 1px solid var(--land-green);
+        padding: 10px 20px;
+        transition: 0.3s;
+        display: inline-block;
+    }
+
+    .back-nav:hover {
+        background: var(--land-green);
+        color: white;
+    }
+
+    .huge-title {
+        font-size: clamp(3rem, 10vw, 7.5rem);
+        font-weight: 800;
+        color: white;
+        line-height: 0.8;
+        margin: 40px 0 20px 0;
+        text-transform: uppercase;
+    }
+
+    /* FLOATING TERMINAL SECTION */
+    .content-hub {
+        margin-top: -120px;
+        position: relative;
+        z-index: 10;
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        gap: 30px;
+    }
+
+    .main-panel {
+        grid-column: span 12;
+        background: var(--pure-white);
+        box-shadow: 40px 40px 0px rgba(46, 125, 50, 0.05);
+        padding: 80px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 60px;
+    }
+
+    .capability-slot {
+        padding-bottom: 30px;
+        border-bottom: 1px solid rgba(46, 125, 50, 0.1);
+    }
+
+    .slot-num {
+        font-weight: 800;
+        color: var(--land-green);
+        font-size: 0.8rem;
+        display: block;
+        margin-bottom: 15px;
+    }
+
+    .slot-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 15px;
+        text-transform: uppercase;
+    }
+
+    /* ACTION SECTOR */
+    .action-sector {
+        grid-column: span 12;
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 50px;
+        background: var(--accent-gray);
+        color: white;
+        padding: 80px;
+    }
+
+    .edge-heading {
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1;
+        margin-bottom: 30px;
+    }
+
+    .feature-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+        background: rgba(255,255,255,0.03);
+        padding: 20px;
+        border-left: 5px solid var(--land-green);
+    }
+
+    .feature-row i {
+        color: var(--land-green);
+        margin-right: 20px;
+        font-size: 1.2rem;
+    }
+
+    .manifest-trigger {
+        background: var(--land-green);
+        color: white;
+        padding: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        text-decoration: none;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        transition: 0.4s;
+    }
+
+    .manifest-trigger:hover {
+        background: white;
+        color: var(--deep-charcoal);
+        transform: translateY(-10px);
+    }
+
+    /* RESPONSIVE OVERRIDES */
+    @media (max-width: 992px) {
+        .hero-media-layer { 
+            width: 100%; 
+            opacity: 0.3; 
+            -webkit-mask-image: none;
+            mask-image: none;
+        }
+
+        .terrestrial-terminal {
+            min-height: 60vh;
+        }
+        
+        .huge-title { 
+            font-size: 4.5rem; 
+            margin-top: 20px;
+        }
+
+        .content-hub {
+            margin-top: -40px; /* Reduced overlap for mobile readability */
+            gap: 20px;
+        }
+
+        .main-panel {
+            grid-template-columns: 1fr;
+            padding: 40px 25px;
+            gap: 30px;
+            box-shadow: 20px 20px 0px rgba(46, 125, 50, 0.05);
+        }
+
+        .action-sector {
+            grid-template-columns: 1fr;
+            padding: 40px 25px;
+            gap: 40px;
+        }
+
+        .edge-heading {
+            font-size: 2.5rem;
+        }
+
+        .hero-content p {
+            letter-spacing: 5px;
+            font-size: 0.8rem;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .huge-title {
+            font-size: 3.5rem;
+        }
+        
+        .manifest-trigger {
+            padding: 20px;
+        }
+    }
+</style>
+
+<section class="terrestrial-terminal">
+    <div class="hero-media-layer">
+        <img src="https://images.unsplash.com/photo-1519003722824-194d4455a60c?auto=format&fit=crop&q=80&w=1600" alt="Land Transport Fleet">
+    </div>
+
+    <div class="wolf-grid">
+        <div class="hero-content">
+            <a href="{% url 'home' %}" class="back-nav">Exit to Home</a>
+            <h1 class="huge-title">Land<br><span style="color: var(--land-green);">Transit</span></h1>
+            <p style="color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 10px; font-weight: 600;">Ground Distribution Protocol</p>
+        </div>
+    </div>
+</section>
+
+<div class="wolf-grid">
+    <div class="content-hub">
+        
+        <div class="main-panel">
+            <div class="capability-slot">
+                <span class="slot-num">MANIFEST TYPE: GRND-01</span>
+                <h3 class="slot-title">Haulage</h3>
+                <p class="text-muted">Heavy-duty ground transport for industrial equipment and bulk inventory across regional routes.</p>
+            </div>
+            <div class="capability-slot">
+                <span class="slot-num">MANIFEST TYPE: GRND-02</span>
+                <h3 class="slot-title">Last-Mile</h3>
+                <p class="text-muted">Precision local delivery ensuring your cargo reaches the final doorstep with surgical efficiency.</p>
+            </div>
+            <div class="capability-slot">
+                <span class="slot-num">MANIFEST TYPE: GRND-03</span>
+                <h3 class="slot-title">Cross-Border</h3>
+                <p class="text-muted">Secure transit routes connecting West African trade hubs via synchronized land manifests.</p>
+            </div>
+        </div>
+
+        <div class="action-sector">
+            <div>
+                <h2 class="edge-heading">The Ground <span style="color: var(--land-green);">Backbone</span></h2>
+                <p style="color: rgba(255,255,255,0.6); margin-bottom: 40px; font-size: 1.2rem;">Our terrestrial fleet serves as the final link in the supply chain. We integrate GPS telemetry with secure loading protocols for absolute cargo safety.</p>
+                
+                <div class="feature-row">
+                    <i class="fas fa-truck"></i>
+                    <span>Real-time GPS Fleet Monitoring & Telemetry</span>
+                </div>
+                <div class="feature-row">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>High-Security Loading & Offloading Protocols</span>
+                </div>
+                <div class="feature-row">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Optimized Regional Routing for Speed</span>
+                </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+                <div style="border: 1px solid rgba(255,255,255,0.1); padding: 40px; margin-bottom: 20px;">
+                    <h4 style="text-transform: uppercase; font-weight: 800; letter-spacing: 2px;">Initialize Land Manifest</h4>
+                    <p style="color: rgba(255,255,255,0.5); font-size: 0.9rem;">Submit your ground cargo details for immediate fleet assignment.</p>
+                </div>
+                <a href="{% url 'signup' %}" class="manifest-trigger">
+    <span>Request Land Quote</span>
+    <i class="fas fa-arrow-right"></i>
+</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div style="height: 100px;"></div>
+{% endblock %}

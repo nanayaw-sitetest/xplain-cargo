@@ -54,4 +54,14 @@ urlpatterns = [
     # --- ABOUT US TERMINAL ---
     # Vision and Mission architecture
     path('about/', views.about_view, name='about'),
+
+    # --- LOGISTICS SERVICES TERMINALS ---
+    # Ocean Freight: Vessel Tracking and Maritime Logistics
+    path('services/ocean-freight/', views.ocean_freight_view, name='ocean_freight'),
+    
+    # Air Logistics: Rapid Aerial Manifests and Global Flight Transit
+    path('services/air-logistics/', views.air_logistics_view, name='air_logistics'),
+
+    # Land Transit: Local and Cross-Border Ground Manifests
+    path('services/land-transit/', views.land_transit_view, name='land_transit'),
 ]

@@ -666,8 +666,28 @@ def contact_view(request):
         return redirect('contact')
         
     return render(request, 'shipping/contact.html')
+
 def about_view(request):
     """
     Renders the About Us terminal featuring the corporate vision and mission.
     """
     return render(request, 'shipping/about.html')
+
+# --- LOGISTICS SERVICES TERMINALS ---
+
+def ocean_freight_view(request):
+    """
+    Renders the Ocean Freight service page.
+    """
+    return render(request, 'shipping/ocean_freight.html')
+
+def air_logistics_view(request):
+    """
+    Renders the Air Logistics service page.
+    """
+    return render(request, 'shipping/air_logistics.html')
+def land_transit_view(request):
+    """
+    Renders the Land Transit service page.
+    """
+    return render(request, 'shipping/land_transit.html')
